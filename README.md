@@ -1,1 +1,1 @@
-# QMdesc
+# QUantum Electronic Descriptors (QUED)
