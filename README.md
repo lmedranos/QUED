@@ -1,9 +1,9 @@
 # QUantum Electronic Descriptors (QUED)
 
+## Generate 3D database + QM properties
 
-## Required libraries
+### Required libraries
 
-#### To convert SMILES to 3D coordinates
 ```console
 conda create -n qued python=3.9
 conda activate qued
@@ -24,6 +24,12 @@ conda install h5py
 I tried the option indicated by documentation and krr-opt/experiments/QM7X/README.md but neither of them worked
 ```console
 pip3 install qml
+```
+
+### Convert SMILES to 3D coordinates
+Example with ld50-tdcommons.csv database
+```console
+python3 smile2geom.py -i ld50-tdcommons.csv -x 'Drug' -y 'Y'
 ```
 
 
