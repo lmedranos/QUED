@@ -1,6 +1,33 @@
 # QUantum Electronic Descriptors (QUED)
 
-## Create virtual environment for KRR-OPT tool
+
+## Required libraries
+
+#### To convert SMILES to 3D coordinates
+```console
+conda create -n qued python=3.9
+conda activate qued
+conda install -c conda-forge rdkit numpy scipy pandas matplotlib
+```
+
+#### To read QM7-X dataset
+```console
+pip install schnetpack==0.3
+```
+
+#### To read TOX and LIPO datasets
+```console
+conda install h5py
+```
+
+#### To generate BoB and SLATM
+I tried the option indicated by documentation and krr-opt/experiments/QM7X/README.md but neither of them worked
+```console
+pip3 install qml
+```
+
+
+### Create virtual environment for KRR-OPT tool
 
 #### Before the installation, create and activate your conda env with python 3.9:
 ```console
@@ -26,7 +53,7 @@ Then use generated .whl file (example below) to install the package with all dep
 pip install ./dist/krr_opt-<version>-py3-none-any.whl
 ```
 
-## Create virtual environment for XGBoost training
+### Create virtual environment for XGBoost training
 
 #### Before the installation, create and activate your conda env with python 3.10:
 ```console
@@ -36,25 +63,5 @@ conda activate xgbOpt
 conda install numpy pandas matplotlib scikit-learn
 conda install -c conda-forge optuna
 conda install -c conda-forge shap
-```
-
-## Required libraries to generate geometric descriptors
-
-Apart from krr-opt with all dependencies, requires:
-
-#### To read QM7-X dataset
-```console
-pip install schnetpack==0.3
-```
-
-#### To read TOX and LIPO datasets
-```console
-conda install h5py
-```
-
-#### To generate BoB and SLATM
-I tried the option indicated by documentation and krr-opt/experiments/QM7X/README.md but neither of them worked
-```console
-pip3 install qml
 ```
 
