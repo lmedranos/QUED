@@ -1,6 +1,6 @@
 # QUantum Electronic Descriptors (QUED)
 
-# Create virtual environment for KRR-OPT tool
+## Create virtual environment for KRR-OPT tool
 
 #### Before the installation, create and activate your conda env with python 3.9:
 ```console
@@ -9,7 +9,6 @@ conda activate krrOpt2
 
 conda install -c conda-forge 'joblib>=1.3.0' 'scipy>=1.11.0' 'numpy>1.23.0,<1.24.0' 'matplotlib>=3.7.0' 'scikit-learn>=1.5.0' 'typing-extensions>=4.7.0'
 ```
-or use any existing environment with **python 3.9**.
 
 #### You will need the fixed fork of SHGO optimizer (v. 0.5.1):
 ```console
@@ -27,7 +26,7 @@ Then use generated .whl file (example below) to install the package with all dep
 pip install ./dist/krr_opt-<version>-py3-none-any.whl
 ```
 
-# Create virtual environment for XGBoost training
+## Create virtual environment for XGBoost training
 
 #### Before the installation, create and activate your conda env with python 3.10:
 ```console
@@ -39,7 +38,7 @@ conda install -c conda-forge optuna
 conda install -c conda-forge shap
 ```
 
-# Generate geometric descriptors
+## Required libraries to generate geometric descriptors
 
 Apart from krr-opt with all dependencies, requires:
 
