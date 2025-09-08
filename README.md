@@ -6,11 +6,24 @@
 
 rdkit to convert SMILES to 3D coordinates
 crest to perform conformational search
+dftb+ and ase to compute QM properties
 ```bash
 conda create -n qued python=3.9
 conda activate qued
 conda install -c conda-forge rdkit numpy scipy pandas matplotlib
 conda install conda-forge::crest
+# Note: this downgrades xTB, not sure if it's better to create
+# a separate environment for QM calculations
+conda create -n dftbplus python=3.9
+conda activate dftbplus
+conda install -c conda-forge rdkit numpy scipy pandas matplotlib
+conda install -n dftbplus mamba
+mamba install 'dftbplus=*=mpi_openmpi_*'
+# additional components like the dptools and the Python API
+mamba install dftbplus-tools dftbplus-python
+conda install conda-forge::ase
+# the dftb.py file has to be replaced in the calculators module of ase
+cp dftb.py /home/alhi416g/.conda/envs/dftbplus/lib/python3.9/site-packages/ase/calculators/dftb.py
 ```
 
 #### To read QM7-X dataset
@@ -57,17 +70,36 @@ crest $mol -gfn2 -gbsa h2o -opt lax -norotmd -mquick -mrest 5 -rthr 0.1 -ewin 12
 cd ..
 
 mkdir -p crest_conformers
-mv tmp/crest_conformers.xyz crest_conformers/${molid}.xyz
+mv tmp/crest_conformers.xyz conformers/${molid}.xyz
 rm -r tmp
 ```
-
+<!-- 
 ### Select 10 conformers with the lowest xTB energy after the generation
 Example with folder <crest_conformers>
 ```bash
 conda activate qued
 python3 select_conformers.py -i crest_conformers
-```
+``` -->
 
+### Calculate QM properties
+Elements covered by the 3ob parameters set: Br-C-Ca-Cl-F-H-I-K-Mg-N-Na-O-P-S-Zn. Download parameters from [dft.org](https://dftb.org/parameters/download.html#)
+Takes only the top10 conformers with the lowest xTB energy after the generation
+```bash
+# change this as necessary
+module load release/23.10 GCC/12.2.0 OpenMPI/4.1.4
+module load intel/2022a
+source activate /home/alhi416g/.conda/envs/dftbplus
+export DFTB_COMMAND='mpiexec -n 1 /home/alhi416g/.conda/envs/qued/bin/dftb+'
+export DFTB_PREFIX='/data/horse/ws/alhi416g-qmbio2/QUED/3ob-3-1/'
+export OMP_NUM_THREADS=1
+
+mol=/data/horse/ws/alhi416g-qmbio2/QUED/tests/conformers/${molid}.xyz
+
+python3 qmcalc.py -i $mol -n 10 -o qmprops
+
+# remove files from dftb+
+rm band.out charges.bin current_dftb.out detailed.out dftb_in.hsd dftb_pin.hsd geo_end.gen
+```
 
 ### Create virtual environment for KRR-OPT tool
 
