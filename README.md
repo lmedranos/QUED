@@ -4,27 +4,34 @@
 
 ### Required libraries
 
-rdkit to convert SMILES to 3D coordinates
-crest to perform conformational search
-dftb+ and ase to compute QM properties
+- rdkit to convert SMILES to 3D coordinates
+- crest to perform conformational search
+- dftb+ and ase to compute QM properties
+- qml to generate BoB and SLATM
 ```bash
+# environment for SMILEs conversion and conformational search
 conda create -n qued python=3.9
 conda activate qued
 conda install -c conda-forge rdkit numpy scipy pandas matplotlib
 conda install conda-forge::crest
-# Note: this downgrades xTB, not sure if it's better to create
-# a separate environment for QM calculations
-conda create -n dftbplus python=3.9
-conda activate dftbplus
-conda install -c conda-forge rdkit numpy scipy pandas matplotlib
-conda install -n dftbplus mamba
+# Note: DFTB+ downgrades xTB (6.7.1. -> 6.6.1.)
+conda install -n qued mamba
 mamba install 'dftbplus=*=mpi_openmpi_*'
 # additional components like the dptools and the Python API
 mamba install dftbplus-tools dftbplus-python
 conda install conda-forge::ase
 # the dftb.py file has to be replaced in the calculators module of ase
-cp dftb.py /home/alhi416g/.conda/envs/dftbplus/lib/python3.9/site-packages/ase/calculators/dftb.py
+# to include calculated reference values for Hubbard Derivatives
+cp dftb.py /home/alhi416g/.conda/envs/qued/lib/python3.9/site-packages/ase/calculators/dftb.py
+# Note: I could not install it using <pip install qml --user -U>
+pip3 install qml
 ```
+
+<!-- #### To generate BoB and SLATM
+I tried the option indicated by documentation and krr-opt/experiments/QM7X/README.md but neither of them worked
+```bash
+pip3 install qml
+``` -->
 
 #### To read QM7-X dataset
 ```bash
@@ -36,11 +43,6 @@ pip install schnetpack==0.3
 conda install h5py
 ```
 
-#### To generate BoB and SLATM
-I tried the option indicated by documentation and krr-opt/experiments/QM7X/README.md but neither of them worked
-```bash
-pip3 install qml
-```
 
 ### Convert SMILES to 3D coordinates
 Example with ld50-tdcommons.csv database
@@ -87,7 +89,6 @@ Takes only the top10 conformers with the lowest xTB energy after the generation
 ```bash
 # change this as necessary
 module load release/23.10 GCC/12.2.0 OpenMPI/4.1.4
-module load intel/2022a
 source activate /home/alhi416g/.conda/envs/dftbplus
 export DFTB_COMMAND='mpiexec -n 1 /home/alhi416g/.conda/envs/qued/bin/dftb+'
 export DFTB_PREFIX='/data/horse/ws/alhi416g-qmbio2/QUED/3ob-3-1/'
