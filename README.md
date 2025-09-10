@@ -59,8 +59,9 @@ pip install ./dist/krr_opt-<version>-py3-none-any.whl
 
 ### XGBoost training
 ```bash
-conda install -c conda-forge py-xgboost
 conda install h5py
+pip install pyyaml
+conda install -c conda-forge py-xgboost
 conda install -c conda-forge optuna
 conda install -c conda-forge shap
 ```
@@ -89,6 +90,10 @@ python3 smile2geom.py -i ld50-tdcommons.csv -x 'Drug' -y 'Y'
 ### Perform conformational search
 Example with 1301.xyz (1-Butanethiol -> CCCCS)
 ```bash
+module load release/23.10 Anaconda3/2023.07-2
+module load intel/2022a
+source activate /home/alhi416g/.conda/envs/qued
+
 # path where initial xyz file is stored
 molid=1301
 mol=/data/horse/ws/alhi416g-qmbio2/QUED/tests/geometries/${molid}.xyz
@@ -129,4 +134,15 @@ python3 qmcalc.py -i $mol -n 10 -o qmprops
 rm band.out charges.bin current_dftb.out detailed.out dftb_in.hsd dftb_pin.hsd geo_end.gen
 ```
 
+### Validate XGBoost
+```bash
+module load release/23.10 Anaconda3/2023.07-2
+module load intel/2022a
+source activate /home/alhi416g/.conda/envs/qued
+export OPENBLAS_NUM_THREADS=1
+export DFTB_COMMAND='mpiexec -n 1 /home/alhi416g/.conda/envs/qued/bin/dftb+'
+export DFTB_PREFIX='/data/horse/ws/alhi416g-qmbio2/QUED/3ob-3-1/'
+export OMP_NUM_THREADS=1
 
+python3 validation.py -i conformers
+```
