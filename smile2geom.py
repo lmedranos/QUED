@@ -65,7 +65,7 @@ if __name__ == '__main__':
 
     if_xyz = []
     chemical_species = []
-    number_heavy_atoms = [] 
+    number_heavy_atoms = []
     number_total_atoms = []
     for i, smile in enumerate(smiles):
         # get chemical species in the molecule (for reference)
