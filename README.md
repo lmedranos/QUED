@@ -34,7 +34,7 @@ mamba install dftbplus-tools dftbplus-python
 It is necessary to replace the `dftb.py` file of the `ase` package with the one provided in this repository. This include calculated reference values for Hubbard Derivatives.
 ```bash
 conda install conda-forge::ase
-cp dftb.py .conda/envs/qued/lib/python3.9/site-packages/ase/calculators/dftb.py
+cp dftb.py /path/to/.conda/envs/qued/lib/python3.9/site-packages/ase/calculators/dftb.py
 ```
 
 Install `qml` to generate BoB and SLATM descriptors.
