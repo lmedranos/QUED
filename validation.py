@@ -5,124 +5,145 @@ Evaluate XGBoost model
 import os
 from argparse import ArgumentParser
 
-import yaml
 import numpy as np
 import xgboost as xgb
-from sklearn.manifold import TSNE
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import r2_score, mean_absolute_error, root_mean_squared_error
+from krr_opt import *
 
 from electronic import *
 from geometric import *
 
-# values for tox
-# max_atoms: The maximum number of atoms in the representation
-# asize: The maximum number of atoms of each element type supported by the representation
-max_atoms = 196
-asize = {'C': 62, 'H': 111, 'N': 16, 'O': 35, 'S': 8, 'Cl': 12, 'F': 20, 'Br': 6, 'I':6, 'P': 4}
-atomtypes = list(asize.keys())
+def get_trained_xgboost_model(dataset_path, model_path, representation, target):
+    # load training dataset
+    dataset = np.load(dataset_path, allow_pickle=True)
+    X, y = dataset[representation], dataset[target]
 
-def farthest_point_sampling(points, num):
-    ###
-    # Farthest Point Sampling (FPS) 
-    # points: point cloud (dataframe)
-    # num: number of wished selected points
-    ###
-    #points.index = range(0,len(points))
+    # load model hyperparameters and train indices
+    parameters = np.load(model_path, allow_pickle=True)
+    hyperparameters = parameters['hyperparams']
+    train_idxs = parameters['X_train_idxs']
+    X_train, y_train = X[train_idxs,:], y[train_idxs]
 
-    center = np.mean(points, axis=0)            # Due to PCA, already shift to (0,0,0)
-    fps_idx = np.zeros(num, dtype=np.int32)     # initiate the idx_list
+    # build model
+    xgbr = {"model": xgb.XGBRegressor(n_jobs=-1)}
+    trained_model = xgbr['model'].set_params(**hyperparameters)
+    pipeline = Pipeline([('scaler', StandardScaler()),
+                        ('model', trained_model)])
+    pipeline.fit(X_train, y_train)
 
-    # initial points, largest distance from center
-    # calculate the euclidean distance for every points
-    distances = np.linalg.norm(points - center, axis=1)
-    fps_idx[0] = np.argmax(distances)
+    return pipeline
 
-    # calculate the distance between one point and selected_pt_group
-    for i in range(1, num): 
-        # calculate all the rest points to the selected new point
-        current_points = points[fps_idx[i-1]]
-        new_distances = np.linalg.norm(points - current_points,axis=1) 
-        # calculate the shortest distance as the criteria for each point
-        # make it more clear: take the point as criteria with the shortest distance 
-        distances = np.minimum(distances, new_distances)
-        # take the maximal among those distances, then it is the farthest point
-        fps_idx[i] = np.argmax(distances)
+def get_trained_krr_model(dataset_path, model_path, representation, target):
+    # load training dataset
+    dataset = np.load(dataset_path, allow_pickle=True)
+    X, y = dataset[representation], dataset[target]
 
-    return fps_idx
+    # load model hyperparameters and train indices
+    parameters = np.load(model_path, allow_pickle=True)
+    hyperparameters = parameters['hyperparams']
+    weights = parameters['weights']
+    train_idxs = parameters['X_train_idxs']
+    X_train, y_train = X[train_idxs,:], y[train_idxs]
+
+    # build model
+    estimator = OptimizedKRR(**hyperparameters)
+    estimator._weights = weights
+    estimator._is_fitted = True
+    estimator.X_train = X_train
+
+    return estimator
 
 def get_parser():
     parser = ArgumentParser()
     parser.add_argument('-i', '--input_conformers', type=str,
                         help='Relative or absolute path to xyz file of conformers '
-                        'or the directory with the xyz files. ')
+                             'or the directory with the xyz files. ')
+    parser.add_argument('-n', '--max_conformers', type=int, default=10,
+                        help='Maximum number of conformers per molecule to consider. ' 
+                        'Defult: 10. ')
+    parser.add_argument('-r', '--representation', type=str, default='props',
+                        help='Representation (case-sensitive) to be used. '
+                             'String type, default - "props". '
+                             '"props" and "bob" are currently available. '
+                             'Example: '
+                             '-r "bob" - use xgboost with BOB ')
+    parser.add_argument('-q', '--add_qm', default=False, action='store_true',
+                        help='Concatenate qm props with descriptor (!) representations. '
+                             'Default - False. '
+                             'Just use "-q" to add these properties to your descriptor, otherwise dont use at all.')
+    parser.add_argument('-t', '--training_dataset', type=str, 
+                        help='Path to HDF5 file with training dataset.')
+    parser.add_argument('-y', '--target_property', type=str, default='ld50',
+                        help=f'Property to predict (case-sensitive). '
+                             f'String type, default - "ld50". '
+                             '"ld50" and "lipophilicity" are currently available. ')
+    parser.add_argument('-a', '--model_architecture', type=str, default='xgboost',
+                        help=f'ML model type (case-insensitive).'
+                             f'String type, default - "xgboost". '
+                             f'"krr" and "xgboost" are currently available. ')       
+    parser.add_argument('-p', '--model_parameters', type=str, 
+                        help='Path to npz file with parameters of trained ML model.')
     return parser
 
-arguments = get_parser().parse_args()
+if __name__ == '__main__':
+    arguments = get_parser().parse_args()
 
-conformers_path = arguments.input_conformers
-if conformers_path.endswith('xyz'):
-    xyzFiles = [conformers_path]
-else:
-    xyzFiles = [os.path.join(conformers_path, x) for x in os.listdir(conformers_path)]
+    #### generate conformers for input geometries ####
+    conformers_path = arguments.input_conformers
+    if conformers_path.endswith('xyz'):
+        xyzFiles = [conformers_path]
+    else:
+        xyzFiles = [os.path.join(conformers_path, x) for x in os.listdir(conformers_path)]
+    max_conformers = arguments.max_conformers
+    print(f"Up to {max_conformers} conformers will be extracted from {len(xyzFiles)} files in {conformers_path}")
 
-max_conformers = 10
-bob_qm = []
+    print("Extract geometries...")
+    # get configuration of database
+    if arguments.target_property=='ld50':
+        size, asize = tox_database_config.values()
+    elif arguments.target_property=='lipophilicity':
+        size, asize = lipo_database_config.values()
+    Z, xyz = [], [] 
+    cids = []
+    for inputFile in xyzFiles:
+        for i in range(max_conformers):
+            # get atomic numbers and coordinates
+            _Z, _xyz = get_atomic_numbers_n_coordinates(inputFile, i)
+            if _xyz.sum()==0: break
+            Z.append(_Z)
+            xyz.append(_xyz)
+            cids.append(i)
+    print("Extract geometries - done")
 
-#### starts from xyz file ####
-for inputFile in xyzFiles:
-    for i in range(max_conformers):
-        Z, xyz = get_atomic_numbers_n_coordinates(inputFile, i)
-        if Z.sum()==0: 
-            print(f"{inputFile}: Maximum of conformers reached: {i} conformers")
-            break
+    rep = arguments.representation if not arguments.add_qm else f"{arguments.representation}_qm"
+    print(f"Generate {rep} descriptor...")
+    # generate qm descriptor
+    if arguments.representation=='props':
+        descriptor = np.array([get_props(Z[mol], xyz[mol], size) for mol in range(len(Z))])
+    # generate bob descriptor
+    elif arguments.representation=='bob':
+        descriptor = np.array([generate_bob(Z[mol], xyz[mol], size, asize) for mol in range(len(Z))])
+    # add qm properties to geometric descriptor
+    if arguments.add_qm and arguments.representation!='props':
+        props = np.array([get_props(Z[mol], xyz[mol], size) for mol in range(len(Z))])
+        descriptor = np.concatenate((descriptor, props), axis=1)
+    print(f"Generate {rep} descriptor - done")
 
-        #### get geometric descriptor ####
-        _bob = generate_bob(Z, xyz, 
-                            size=max_atoms, 
-                            atomtypes=atomtypes, 
-                            asize=asize)
+    #### build ML regressor model ####
+    print(f"Load {arguments.model_architecture.upper()} model")
+    parameters = dict(dataset_path=arguments.training_dataset, 
+                      model_path=arguments.model_parameters, 
+                      representation=arguments.representation, 
+                      target=arguments.target_property)
+    if arguments.model_architecture.lower()=='xgboost':
+        trained_model = get_trained_xgboost_model(**parameters)
+    elif arguments.model_architecture.lower()=='krr':
+        trained_model = get_trained_krr_model(**parameters)
+    print(f"Load {arguments.model_architecture.upper()} model - done")
 
-        #### get electronic descriptor ####
-        DFTBprops = calculate_dftb_props(Z, xyz)
-        TBdip = np.array([np.linalg.norm(DFTBprops[8:11])])
-        nEig = int(DFTBprops[11])
-        TBeig = DFTBprops[12:12+nEig]
-        TBchg = DFTBprops[12+nEig:]
-        TBchg = pad_charges(TBchg, max_atoms)
-        _props = np.concatenate((DFTBprops[:8], TBdip, TBeig, TBchg))
-        
-        rep = np.concatenate((_bob, _props))
-        bob_qm.append(rep)
-bob_qm = np.array(bob_qm)
-
-#### build XGBoost model ####
-dataset_path = '/data/horse/ws/alhi416g-qmbio2/tox/descriptor/representation-minenergy.npz'
-dataset = np.load(dataset_path)
-X, y = dataset['bob_qm'], dataset['ld50']
-# farthest point sampling
-tsne = TSNE(n_components=2, random_state=20240815, perplexity=30, max_iter=1000, n_jobs=-1)
-X_tsne = tsne.fit_transform(X)
-train_idxs = farthest_point_sampling(X_tsne, 5000)
-test_idxs = np.array([i for i in range(len(y)) if i not in train_idxs])
-X_train, y_train = X[train_idxs,:], y[train_idxs]
-X_test, y_test   = X[test_idxs,:], y[test_idxs]
-
-# load hyperparameters
-xgbr = {"model": xgb.XGBRegressor(n_jobs=-1)}
-hyperparameters_path = '/data/horse/ws/alhi416g-qmbio2/tox/xgb/minenergy/bob/all/5000/hyperpars.yaml'
-with open(hyperparameters_path) as f:
-    hyperparams = yaml.load(f, Loader=yaml.FullLoader)
-trained_model = xgbr['model'].set_params(**hyperparams)
-
-pipeline = Pipeline([('scaler', StandardScaler()),
-                     ('model', trained_model)])
-pipeline.fit(X_train, y_train)
-
-# validation / inference
-y_pred = pipeline.predict(bob_qm)
-k = 0
-for inputFile in xyzFiles:
-    for i in range(arguments.max_conformers):
-        print(f'File {inputFile} | conformer {i}: Prediction = {y_pred: .3f}')
+    # validation / inference
+    print("\nVALIDATION")
+    y_pred = trained_model.predict(descriptor)
+    for i, inputFile in enumerate(xyzFiles):
+        print(f'File {inputFile} | conformer {cids[i]}: Prediction = {y_pred[i]: .3f}')
