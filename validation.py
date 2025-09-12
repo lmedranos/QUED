@@ -21,7 +21,7 @@ def get_trained_xgboost_model(dataset_path, model_path, representation, target):
 
     # load model hyperparameters and train indices
     parameters = np.load(model_path, allow_pickle=True)
-    hyperparameters = parameters['hyperparams']
+    hyperparameters = parameters['hyperparams'].item()
     train_idxs = parameters['X_train_idxs']
     X_train, y_train = X[train_idxs,:], y[train_idxs]
 
@@ -41,7 +41,7 @@ def get_trained_krr_model(dataset_path, model_path, representation, target):
 
     # load model hyperparameters and train indices
     parameters = np.load(model_path, allow_pickle=True)
-    hyperparameters = parameters['hyperparams']
+    hyperparameters = parameters['hyperparams'].item()
     weights = parameters['weights']
     train_idxs = parameters['X_train_idxs']
     X_train, y_train = X[train_idxs,:], y[train_idxs]
