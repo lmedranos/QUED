@@ -84,9 +84,10 @@ Takes only the 10 conformers with the lowest xTB energy after the generation and
 ```bash
 python3 qmcalc.py -i crest_conformers.xyz -n 10 -o qmprops
 ```
-<<<<<<< HEAD
 
 ### Validate trained ML regression models
-We have the hyperparameters and parameters of trained ML models. 
-=======
->>>>>>> ef303db73a808232b83c4ad80e21afec80f98742
+The hyperparameters and parameters of trained ML models are included in npz files in the `models` directory. The user can choose between XGBoost and KRR models trained for toxicity and lipophilicity prediction (we include only the best models per dataset and per regression model). It requires the employed training dataset located as well in the `models` directory. For example, to validate the XGBoost model with BOB+QM descriptor for toxicity prediction:
+
+```bash
+python3 qmcalc.py -i crest_conformers.xyz -n 10 -r 'bob' -q -t models/ld50-stable-descriptors.npz -a 'xgboost' -p models/tox-xgb-bobqm-5k.npz
+```
