@@ -84,3 +84,6 @@ Takes only the 10 conformers with the lowest xTB energy after the generation and
 ```bash
 python3 qmcalc.py -i crest_conformers.xyz -n 10 -o qmprops
 ```
+
+### Validate trained ML regression models
+We have the hyperparameters and parameters of trained ML models. 
