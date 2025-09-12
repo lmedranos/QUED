@@ -1,7 +1,7 @@
 # QUantum Electronic Descriptors (QUED)
 
 ## About
-QUED is a machine learning framework for molecular property prediction that integrates both structural and electronic information, enabling efficient modeling of small and large drug-like molecules. It derives a **quantum-mechanical descriptor** from molecular and atomic properties using the semi-empirical DFTB method and combines it with inexpensive two-body and three-body **geometric descriptors** (BoB and SLATM) to create comprehensive molecular representations for training Kernel Ridge Regression and XGBoost models. We validated QUED on the prediction of physicochemical properties (QM7-X dataset) and the ADMET endpoints: toxicity (TDCommons-LD50 dataset) and lipophilicity (MoleculeNet-Lipophilicity benchmark).
+QUED is a machine learning framework for molecular property prediction that integrates both structural and electronic information, enabling efficient modeling of the properties of drug-like molecules. It derives a **quantum-mechanical descriptor** from molecular and atomic properties using the semi-empirical DFTB method and combines it with inexpensive two-body and three-body **geometric descriptors** (BoB and SLATM) to create comprehensive molecular representations for training regression models (e.g., Kernel Ridge Regression, XGBoost). We validated QUED on the prediction of physicochemical properties (QM7-X dataset) and the ADMET endpoints: toxicity (TDCommons-LD50 dataset) and lipophilicity (MoleculeNet-Lipophilicity benchmark).
 
 ## Installation
 QUED requires a `conda` environment with `python 3.9`. 
@@ -31,7 +31,7 @@ mamba install dftbplus-tools dftbplus-python
 ```
 > **Note**: Although DFTB+ downgrades xTB (6.7.1. -> 6.6.1.), CREST runs normally.
 
-It is necessary to replace the `dftb.py` file of the `ase` package with the one provided in this repository. This include calculated reference values for Hubbard Derivatives.
+It is necessary to replace the `dftb.py` file of the `ase` package with the one provided in this repository. This includes calculated reference values for Hubbard Derivatives.
 ```bash
 conda install conda-forge::ase
 cp dftb.py /path/to/.conda/envs/qued/lib/python3.9/site-packages/ase/calculators/dftb.py
@@ -53,13 +53,13 @@ Finally, install the `KRR-OPT` tool from the [krr-opt repository](https://github
 ## Command Line Interface
 
 ### Convert SMILES to 3D coordinates
-From a csv files with SMILES (and optionally target property values) creates xyz files for each molecule in the dataset with initial 3D atomic coordinates.
+From a CSV file with SMILES (and optionally target property values), it creates xyz files for each molecule in the dataset with initial 3D atomic coordinates.
 ```bash
 python3 smile2geom.py -i dataset.csv -x 'smiles' -y 'target' -o 'conformers'
 ```
 
 ### Perform conformational search
-From the initial 3D atomic coordinates (stored in an xyz file) generates conformers for a molecule via CREST. The output file `crest_conformers.xyz` contains the atomic coordinates of all the generated conformers.
+From the initial 3D atomic coordinates of a given molecule (stored in an xyz file), conformers are generated via CREST. The output file `crest_conformers.xyz` contains the atomic coordinates of all the generated conformers.
 ```bash
 # conformational search for small molecules
 crest mol.xyz -gfn2 -gbsa h2o -mrest 10 -rthr 0.1 -ewin 12.0
@@ -84,6 +84,9 @@ Takes only the 10 conformers with the lowest xTB energy after the generation and
 ```bash
 python3 qmcalc.py -i crest_conformers.xyz -n 10 -o qmprops
 ```
+<<<<<<< HEAD
 
 ### Validate trained ML regression models
 We have the hyperparameters and parameters of trained ML models. 
+=======
+>>>>>>> ef303db73a808232b83c4ad80e21afec80f98742
