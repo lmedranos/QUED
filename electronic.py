@@ -209,6 +209,24 @@ def pad_charges(chg, max_atoms=203):
     else:
         return chg
 
+# get QM descriptor
+def get_props(Z, xyz, max_atoms):
+    # calculate QM properties
+    DFTBprops = calculate_dftb_props(Z, xyz)
+    # extract global properties: energy terms and number of electrons
+    TBglobal = DFTBprops[:8]
+    # extract norm of dipole moment
+    TBdip = np.array([np.linalg.norm(DFTBprops[8:11])])
+    # get electronic molecular orbital energies
+    nEig = int(DFTBprops[11])
+    TBeig = DFTBprops[12:12+nEig]
+    # get Mulliken charges and padding
+    TBchg = DFTBprops[12+nEig:]
+    TBchg = pad_charges(TBchg, max_atoms)
+    # concatenate properties
+    props = np.concatenate((TBglobal, TBdip, TBeig, TBchg))
+    return props
+
 def get_parser():
     parser = ArgumentParser()
     parser.add_argument('-i', '--input_conformers', type=str,
