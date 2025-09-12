@@ -1,10 +1,3 @@
-import os
-from argparse import ArgumentParser
-
-import numpy as np
-import h5py
-
-from ase.io import read
 from qml.representations import generate_coulomb_matrix, generate_bob, generate_slatm, get_slatm_mbtypes
 from krr_opt import *
 
