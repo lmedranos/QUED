@@ -1,3 +1,4 @@
+[![paper-link](https://img.shields.io/badge/preprint-ChemRxiv-red.svg?style=flat-squar)](https://chemrxiv.org/engage/chemrxiv/article-details/68095e1d927d1c2e667c750a)
 # QUantum Electronic Descriptors (QUED)
 
 ## About
