@@ -25,3 +25,8 @@ def get_bob(Z, xyz, max_atoms, asize):
                             atomtypes=atomtypes, 
                             asize=asize)
     return bob_repr
+
+def get_slatm(Z, xyz, mbtypes):
+    slatm_repr = generate_slatm(xyz, Z, 
+                                mbtypes=mbtypes)
+    return slatm_repr
