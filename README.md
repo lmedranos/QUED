@@ -86,7 +86,7 @@ python3 qmcalc.py -i crest_conformers.xyz -n 10 -o qmprops
 ```
 
 ### Validate trained ML regression models
-The hyperparameters and parameters of trained ML models are included in npz files in the `models` directory. The user can choose between XGBoost and KRR models trained for toxicity and lipophilicity prediction (we include only the best models per dataset and per regression model). It requires the employed training dataset, which can be found in the `models` directory. For example, to validate the XGBoost model with BOB+QM descriptor for toxicity prediction:
+The hyperparameters and parameters of trained ML models are included in npz files in the `models` directory. The user can choose between XGBoost and KRR models trained for toxicity and lipophilicity prediction (we include only the best models per dataset and per regression model). It requires the employed training dataset (in HDF5 format), which can be found in the `models` directory (decompress the zip file before running this script). For example, to validate the XGBoost model with BOB+QM descriptor for toxicity prediction:
 
 ```bash
 python3 qmcalc.py -i crest_conformers.xyz -n 10 -r 'bob' -q -t ld50-stable-descriptors.npz -a 'xgboost' -p models/tox-xgb-bobqm-5k.npz
