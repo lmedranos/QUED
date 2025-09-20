@@ -15,7 +15,7 @@ QUED requires a `conda` environment with `python 3.9`.
 ```bash
 conda create -n qued python=3.9
 conda activate qued
-conda install -c conda-forge 'joblib>=1.3.0' 'scipy>=1.11.0' 'numpy>1.23.0,<1.24.0' 'matplotlib>=3.7.0' 'scikit-learn>=1.5.0' 'typing-extensions>=4.7.0'
+conda install -c conda-forge 'joblib>=1.3.0' 'scipy>=1.11.0' 'numpy>1.23.0,<1.24.0' 'matplotlib>=3.7.0' 'scikit-learn>=1.5.0'
 ```
 
 Install `rdkit` for conversion of SMILES to 3D coordinates
