@@ -18,6 +18,11 @@ conda activate qued
 conda install -c conda-forge 'joblib>=1.3.0' 'scipy>=1.11.0' 'numpy>1.23.0,<1.24.0' 'matplotlib>=3.7.0' 'scikit-learn>=1.5.0'
 ```
 
+Install `qml` to generate BoB and SLATM descriptors.
+```bash
+pip3 install qml
+```
+
 Install `rdkit` for conversion of SMILES to 3D coordinates
 ```bash
 conda install -c conda-forge rdkit
@@ -42,11 +47,6 @@ It is necessary to replace the `dftb.py` file of the `ase` package with the one 
 ```bash
 conda install conda-forge::ase
 cp dftb.py /path/to/.conda/envs/qued/lib/python3.9/site-packages/ase/calculators/dftb.py
-```
-
-Install `qml` to generate BoB and SLATM descriptors.
-```bash
-pip3 install qml
 ```
 
 The following packages are needed for training XGBoost models
