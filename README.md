@@ -89,7 +89,7 @@ export OMP_NUM_THREADS=1
 
 Takes only the 10 conformers with the lowest xTB energy after the generation and creates `Geom-n[i]-c[j].npz` files, which store the calculated QM properties. 
 ```bash
-python3 qmcalc.py -i crest_conformers.xyz -n 10 -o qmprops
+python3 electronic.py -i crest_conformers.xyz -n 10 -o qmprops
 ```
 
 ### Validate trained ML regression models
