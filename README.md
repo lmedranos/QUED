@@ -11,16 +11,12 @@ The structural and property data of drug-like molecules in TDCommons-LD50 and Mo
 [![ZENODO](https://zenodo.org/badge/DOI/10.5281/zenodo.10208010.svg)](https://zenodo.org/records/17106019)
 
 ## Installation
-QUED requires a `conda` environment with `python 3.9`. 
+QUED requires a `conda` environment with `python 3.9`. Install first `qml` to generate BoB and SLATM descriptors.
 ```bash
 conda create -n qued python=3.9
 conda activate qued
-conda install -c conda-forge 'joblib>=1.3.0' 'scipy>=1.11.0' 'numpy>1.23.0,<1.24.0' 'matplotlib>=3.7.0' 'scikit-learn>=1.5.0'
-```
-
-Install `qml` to generate BoB and SLATM descriptors.
-```bash
 pip3 install qml
+conda install -c conda-forge 'joblib>=1.3.0' 'scipy>=1.11.0' 'numpy>1.23.0,<1.24.0' 'matplotlib>=3.7.0' 'scikit-learn>=1.5.0'
 ```
 
 Install `rdkit` for conversion of SMILES to 3D coordinates
