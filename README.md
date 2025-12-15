@@ -11,18 +11,20 @@ The structural and property data of drug-like molecules in TDCommons-LD50 and Mo
 [![ZENODO](https://zenodo.org/badge/DOI/10.5281/zenodo.10208010.svg)](https://zenodo.org/records/17106019)
 
 ## Installation
-QUED requires a `conda` environment with `python 3.9`. Install first `qml` to generate BoB and SLATM descriptors.
+QUED requires a `conda` environment with `python 3.9`.
+In addition to well-known libraries, `qml` is installed to generate BoB and SLATM descriptors. Other useful packages for posterior dataset generation should also be installed.
 ```bash
 conda create -n qued python=3.9
 conda activate qued
 pip3 install qml
 conda install -c conda-forge 'joblib>=1.3.0' 'scipy>=1.11.0' 'numpy>1.23.0,<1.24.0' 'matplotlib>=3.7.0' 'scikit-learn>=1.5.0'
+conda install pandas
+conda install h5py
 ```
 
 Install `rdkit` for conversion of SMILES to 3D coordinates
 ```bash
 conda install -c conda-forge rdkit
-conda install pandas
 ```
 
 Install `crest` for performing conformational search
@@ -37,7 +39,6 @@ mamba install 'dftbplus=*=mpi_openmpi_*'
 # additional components like the dptools and the Python API
 mamba install dftbplus-tools dftbplus-python
 ```
-> **Note**: Although DFTB+ downgrades xTB (6.7.1. -> 6.6.1.), CREST runs normally.
 
 It is necessary to replace the `dftb.py` file of the `ase` package with the one provided in this repository. This includes calculated reference values for Hubbard Derivatives.
 ```bash
@@ -48,12 +49,11 @@ cp dftb.py /path/to/.conda/envs/qued/lib/python3.9/site-packages/ase/calculators
 The following packages are needed for training XGBoost models
 ```bash
 conda install -c conda-forge py-xgboost optuna shap
-conda install h5py
-pip install pyyaml
 ```
 Finally, install the `KRR-OPT` tool from the [krr-opt repository](https://github.com/arkochem/krr-opt.git).
 
 ## Command Line Interface
+The `qued` directory include scripts that can be used as standalone executables. 
 
 ### Convert SMILES to 3D coordinates
 From a CSV file with SMILES (and optionally target property values), it creates xyz files for each molecule in the dataset with initial 3D atomic coordinates.
@@ -67,9 +67,9 @@ From the initial 3D atomic coordinates of a given molecule (stored in an xyz fil
 # conformational search for small molecules
 crest mol.xyz -gfn2 -gbsa h2o -mrest 10 -rthr 0.1 -ewin 12.0
 # conformational search for medium-size molecules
-crest mol.xyz -gfn2 -gbsa h2o -opt normal -quick -mrest 5 -rthr 0.1 -ewin 12.0
+crest mol.xyz -gfn2 -gbsa h2o -mrest 5 -rthr 0.1 -ewin 12.0 -quick
 # conformational search for large molecules
-crest mol.xyz -gfn2 -gbsa h2o -opt lax -norotmd -mquick -mrest 5 -rthr 0.1 -ewin 12.0
+crest mol.xyz -gfn2 -gbsa h2o -mrest 5 -rthr 0.1 -ewin 12.0 -mquick -norotmd
 ```
 
 ### Calculate QM properties
@@ -83,14 +83,34 @@ export DFTB_PREFIX='/path/to/slater-koster-files/3ob-3-1/'
 export OMP_NUM_THREADS=1
 ```
 
-Takes only the 10 conformers with the lowest xTB energy after the generation and creates `Geom-n[i]-c[j].npz` files, which store the calculated QM properties. 
+Takes up to 10 conformers with the lowest xTB energy after the generation and creates `Geom-n[i]-c[j].npz` files, which store the calculated QM properties. 
 ```bash
 python3 electronic.py -i crest_conformers.xyz -n 10 -o qmprops
 ```
 
-### Validate trained ML regression models
-The hyperparameters and parameters of trained ML models are included in npz files in the `models` directory. The user can choose between XGBoost and KRR models trained for toxicity and lipophilicity prediction (we include only the best models per dataset and per regression model). It requires the employed training dataset (in HDF5 format), which can be found in the `models` directory (decompress the zip file before running this script). For example, to validate the XGBoost model with BOB+QM descriptor for toxicity prediction:
-
+### Dataset generation
+The script `smile2database.py` allows the user to input a SMILE or a csv file with SMILEs to directly generate a HDF5 file with the DFTB-calculated properties of up to `n` conformers obtained by CREST conformational search (when `n=0`, it extracts all conformers), and optionally include a target property present in the csv file:
 ```bash
-python3 qmcalc.py -i crest_conformers.xyz -n 10 -r 'bob' -q -t ld50-stable-descriptors.npz -a 'xgboost' -p models/tox-xgb-bobqm-5k.npz
+python3 smile2database.py -i dataset.csv -x 'SMILE' -y <optional target> -o <output directory> -n 0
+```
+By default, this program performs conformational search considering this configuration: `-gfn2 -gbsa h2o -mrest 5 -rthr 0.1 -ewin 12.0 -mquick`. In case the user decide to use a different setting, the line 84 of this script should be modified with the desired arguments.
+
+
+### Validate trained ML regression models
+The hyperparameters of trained ML models are included in pickle files in the `models` directory. The user can choose between XGBoost and KRR models trained for toxicity and lipophilicity prediction (we include only the best models per dataset and per regression model). The script `dataset2pred` allows the user to use these trained models to 1) Validate the results resported in the paper. 2) Perform inference in a new dataset of molecules. The flag `-v` serves for the objective 1), in this case, the user must include the employed training dataset (in HDF5 format), which can be found in the models directory (decompress the zip file before running this script). 
+
+In the case of XGBoost, the trained pipeline is already included in the pickle file.
+```bash
+# validation
+python3 dataset2pred.py -v -i /path/to/training_dataset.h5 -m /path/to/model.pkl
+# inference
+python3 dataset2pred.py -i /path/to/new_dataset.h5 -m /path/to/model.pkl
+```
+
+It is not convenient to record the KRR estimator in a pickle file (it would result in a GB-sized file), so instead we saved all necessary parameters of the KRR model in the pickle file and re-train (or re-fit) the KRR model with the employed training dataset (in HDF5 format). Such training datasets can be found in the `models` directory (decompress the zip file before running this script). 
+```bash
+# validation
+python3 dataset2pred.py -v -i /path/to/training_dataset.h5 -m /path/to/model.pkl -t /path/to/training_dataset.h5
+# inference
+python3 dataset2pred.py -i /path/to/new_dataset.h5 -m /path/to/model.pkl -t /path/to/training_dataset.h5
 ```
