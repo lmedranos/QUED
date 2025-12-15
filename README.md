@@ -114,3 +114,9 @@ python3 dataset2pred.py -v -i /path/to/training_dataset.h5 -m /path/to/model.pkl
 # inference
 python3 dataset2pred.py -i /path/to/new_dataset.h5 -m /path/to/model.pkl -t /path/to/training_dataset.h5
 ```
+
+The user can add the flag `-sh` to the arguments of this script to perform a SHAP analysis with the trained model, considering the input dataset (independent of the mode used).
+```bash
+python3 dataset2pred.py -v -i /path/to/training_dataset.h5 -m /path/to/model.pkl -sh
+```
+
