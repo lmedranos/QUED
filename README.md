@@ -22,6 +22,8 @@ conda install pandas
 conda install h5py
 ```
 
+> `qml` works with Intel libraries, therefore load such libraries before running any code that requires `qml`
+
 Install `rdkit` for conversion of SMILES to 3D coordinates
 ```bash
 conda install -c conda-forge rdkit
