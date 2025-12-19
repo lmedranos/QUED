@@ -105,7 +105,7 @@ The script `smile2database.py` allows the user to input a SMILE or a csv file wi
 ```bash
 python3 smile2database.py -i dataset.csv -x 'SMILE' -y <optional target> -o <output directory> -n 0
 ```
-By default, this program performs conformational search considering this configuration: `-gfn2 -gbsa h2o -mrest 5 -rthr 0.1 -ewin 12.0 -mquick`. In case the user decides to use a different setting, line 84 of this script should be modified with the desired arguments.
+By default, this program performs conformational search considering this configuration: `-gfn2 -gbsa h2o -mrest 5 -rthr 0.1 -ewin 12.0 -mquick -norotmd`. In case the user decides to use a different setting, `line 84` of this script should be modified with the desired arguments.
 
 
 ### Validate trained ML regression models
