@@ -12,17 +12,27 @@ The structural and property data of drug-like molecules in TDCommons-LD50 and Mo
 
 ## Installation
 QUED requires a `conda` environment with `python 3.9`.
-In addition to well-known libraries, `qml` is installed to generate BoB and SLATM descriptors. Other useful packages for posterior dataset generation should also be installed.
 ```bash
 conda create -n qued python=3.9
 conda activate qued
-pip3 install qml
-conda install -c conda-forge 'joblib>=1.3.0' 'scipy>=1.11.0' 'numpy>1.23.0,<1.24.0' 'matplotlib>=3.7.0' 'scikit-learn>=1.5.0'
-conda install pandas
-conda install h5py
 ```
 
+To avoid conflicts with other libraries, we install the [`qml`](https://www.qmlcode.org/installation.html) package first. `qml` is installed to generate BoB and SLATM descriptors. 
+```bash
+pip install qml
+```
 > `qml` works with Intel libraries, therefore load such libraries before running any code that requires `qml`
+
+Other useful packages should also be installed.
+```bash
+conda install -c conda-forge 'joblib>=1.3.0' 'scipy>=1.11.0' 'numpy>1.23.0,<1.24.0' 'matplotlib>=3.7.0' 'scikit-learn>=1.5.0'
+conda install pandas h5py
+
+```
+Install `dscribe` to generate the SOAP descriptor.
+```bash
+conda install -c conda-forge dscribe
+```
 
 Install `rdkit` for conversion of SMILES to 3D coordinates
 ```bash
@@ -34,12 +44,11 @@ Install `crest` for performing conformational search
 conda install conda-forge::crest
 ```
 
-Install `dftb+` and `ase` to compute QM properties. 
+Install [`dftb+`](https://dftbplus-recipes.readthedocs.io/en/latest/introduction.html) (version 24.1, see webpage for installation guidelines) and `ase` to compute QM properties. 
 ```bash
-conda install -n qued mamba
-mamba install 'dftbplus=*=mpi_openmpi_*'
+conda install 'dftbplus=*=24.1=mpi_openmpi_*'
 # additional components like the dptools and the Python API
-mamba install dftbplus-tools dftbplus-python
+conda install dftbplus-tools dftbplus-python
 ```
 
 It is necessary to replace the `dftb.py` file of the `ase` package with the one provided in this repository. This includes calculated reference values for Hubbard Derivatives.
@@ -52,10 +61,11 @@ The following packages are needed for training XGBoost models
 ```bash
 conda install -c conda-forge py-xgboost optuna shap
 ```
+
 Finally, install the `KRR-OPT` tool from the [krr-opt repository](https://github.com/arkochem/krr-opt.git).
 
 ## Command Line Interface
-The `qued` directory include scripts that can be used as standalone executables. 
+The `qued` directory includes scripts that can be used as standalone executables. 
 
 ### Convert SMILES to 3D coordinates
 From a CSV file with SMILES (and optionally target property values), it creates xyz files for each molecule in the dataset with initial 3D atomic coordinates.
@@ -95,11 +105,11 @@ The script `smile2database.py` allows the user to input a SMILE or a csv file wi
 ```bash
 python3 smile2database.py -i dataset.csv -x 'SMILE' -y <optional target> -o <output directory> -n 0
 ```
-By default, this program performs conformational search considering this configuration: `-gfn2 -gbsa h2o -mrest 5 -rthr 0.1 -ewin 12.0 -mquick`. In case the user decide to use a different setting, the line 84 of this script should be modified with the desired arguments.
+By default, this program performs conformational search considering this configuration: `-gfn2 -gbsa h2o -mrest 5 -rthr 0.1 -ewin 12.0 -mquick`. In case the user decides to use a different setting, line 84 of this script should be modified with the desired arguments.
 
 
 ### Validate trained ML regression models
-The hyperparameters of trained ML models are included in pickle files in the `models` directory. The user can choose between XGBoost and KRR models trained for toxicity and lipophilicity prediction (we include only the best models per dataset and per regression model). The script `dataset2pred` allows the user to use these trained models to 1) Validate the results resported in the paper. 2) Perform inference in a new dataset of molecules. The flag `-v` serves for the objective 1), in this case, the user must include the employed training dataset (in HDF5 format), which can be found in the models directory (decompress the zip file before running this script). 
+The hyperparameters of trained ML models are included in pickle files in the [ZENODO repository](https://zenodo.org/records/17106019). The user can choose between XGBoost and KRR models trained for physicochemical properties, toxicity and lipophilicity prediction (we include only the best models per dataset and per regression model). The script `dataset2pred` allows the user to use these trained models to 1) Validate the results reported in the paper. 2) Perform inference in a new dataset of molecules. The flag `-v` serves for the objective (1), in this case, the user must include the employed training dataset (in HDF5 format), which can also be found in the [ZENODO repository](https://zenodo.org/records/17106019). 
 
 In the case of XGBoost, the trained pipeline is already included in the pickle file.
 ```bash
@@ -109,7 +119,7 @@ python3 dataset2pred.py -v -i /path/to/training_dataset.h5 -m /path/to/model.pkl
 python3 dataset2pred.py -i /path/to/new_dataset.h5 -m /path/to/model.pkl
 ```
 
-It is not convenient to record the KRR estimator in a pickle file (it would result in a GB-sized file), so instead we saved all necessary parameters of the KRR model in the pickle file and re-train (or re-fit) the KRR model with the employed training dataset (in HDF5 format). Such training datasets can be found in the `models` directory (decompress the zip file before running this script). 
+It is not convenient to record the KRR estimator in a pickle file (it would result in a GB-sized file), so instead, we saved all necessary parameters of the KRR model in the pickle file and re-train (or re-fit) the KRR model with the employed training dataset (in HDF5 format). Such training datasets are found in the [ZENODO repository](https://zenodo.org/records/17106019). 
 ```bash
 # validation
 python3 dataset2pred.py -v -i /path/to/training_dataset.h5 -m /path/to/model.pkl -t /path/to/training_dataset.h5
@@ -117,8 +127,10 @@ python3 dataset2pred.py -v -i /path/to/training_dataset.h5 -m /path/to/model.pkl
 python3 dataset2pred.py -i /path/to/new_dataset.h5 -m /path/to/model.pkl -t /path/to/training_dataset.h5
 ```
 
-The user can add the flag `-sh` to the arguments of this script to perform a SHAP analysis with the trained model, considering the input dataset (independent of the mode used).
+The user can add the flag `-sh` to the arguments of this script to perform a SHAP analysis with the trained XGBoost model, considering the input dataset (independent of the mode used).
 ```bash
 python3 dataset2pred.py -v -i /path/to/training_dataset.h5 -m /path/to/model.pkl -sh
 ```
 
+### Notebook
+The `qued.ipynb` notebook illustrates how to perform conformational search and QM calculations starting from a SMILE. It also allows the user to obtain the SHAP beeswarm plot for validation of the toxicity-predictive XGBoost model.
