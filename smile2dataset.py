@@ -81,7 +81,7 @@ def conformational_search(data, output_directory):
     # directory to store XYZ file that includes all coordinates of conformers
     create_directory(f'{output_directory}/conformers')
     # arguments of CREST, can be modified
-    crest_options = "-gfn2 -gbsa h2o -mrest 5 -rthr 0.1 -ewin 12.0 -mquick -norotmd -T 104"
+    crest_options = "-gfn2 -gbsa h2o -mrest 5 -rthr 0.1 -ewin 12.0 -mquick -norotmd"
     # store number of conformers generated per smile
     conformers = [0]*len(molecule_index)
     no_errors = []    # auxiliar list to store indices without errors
