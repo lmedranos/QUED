@@ -10,6 +10,8 @@ The structural and property data of drug-like molecules in TDCommons-LD50 and Mo
 
 [![ZENODO](https://zenodo.org/badge/DOI/10.5281/zenodo.10208010.svg)](https://zenodo.org/records/17106019)
 
+The dataset generation, training, and evaluation of the ML models were performed on CPUs with an x86_64 architecture.
+
 ## Installation
 QUED requires a `conda` environment with `python 3.9`.
 ```bash
