@@ -29,8 +29,8 @@ Other useful packages should also be installed.
 ```bash
 conda install -c conda-forge 'joblib>=1.3.0' 'scipy>=1.11.0' 'numpy>1.23.0,<1.24.0' 'matplotlib>=3.7.0' 'scikit-learn>=1.5.0'
 conda install pandas h5py
-
 ```
+
 Install `dscribe` to generate the SOAP descriptor.
 ```bash
 conda install -c conda-forge dscribe
@@ -46,14 +46,14 @@ Install `crest` for performing conformational search
 conda install conda-forge::crest
 ```
 
-Install [`dftb+`](https://dftbplus-recipes.readthedocs.io/en/latest/introduction.html) (version 24.1, see webpage for installation guidelines) and `ase` to compute QM properties. 
+Install [`dftb+`](https://dftbplus-recipes.readthedocs.io/en/latest/introduction.html) (version 24.1, see webpage for installation guidelines) to compute QM properties. 
 ```bash
 conda install 'dftbplus=*=24.1=mpi_openmpi_*'
 # additional components like the dptools and the Python API
 conda install dftbplus-tools dftbplus-python
 ```
 
-It is necessary to replace the `dftb.py` file of the `ase` package with the one provided in this repository. This includes calculated reference values for Hubbard Derivatives.
+For the same purpose, the user should also install `ase` and replace the `dftb.py` file of the `ase` package with the one provided in this repository. This one includes calculated reference values for Hubbard Derivatives.
 ```bash
 conda install conda-forge::ase
 cp dftb.py /path/to/.conda/envs/qued/lib/python3.9/site-packages/ase/calculators/dftb.py
@@ -90,7 +90,7 @@ crest mol.xyz -gfn2 -gbsa h2o -mrest 5 -rthr 0.1 -ewin 12.0 -mquick -norotmd
 Elements covered by the 3ob parameters set: Br-C-Ca-Cl-F-H-I-K-Mg-N-Na-O-P-S-Zn. The parameters can be downloaded from [dft.org](https://dftb.org/parameters/download.html#). Add the following environment variables to your shell (e.g., in .bashrc, .zshrc, or your job script), replacing the placeholder paths with your own installation paths:
 ```bash
 # Path to your DFTB+ executable (MPI-enabled if available)
-export DFTB_COMMAND='mpiexec -n 1 /path/to/dftb+/bin/dftb+'
+export DFTB_COMMAND='mpiexec -n 1 /path/to/dftb+/qued/bin/dftb+'
 # Path to the DFTB+ parameter set (e.g., 3ob-3-1 directory)
 export DFTB_PREFIX='/path/to/slater-koster-files/3ob-3-1/'
 # Set number of OpenMP threads (must be 1 if running under MPI)
@@ -107,11 +107,11 @@ The script `smile2database.py` allows the user to input a SMILE or a csv file wi
 ```bash
 python3 smile2database.py -i dataset.csv -x 'SMILE' -y <optional target> -o <output directory> -n 0
 ```
-By default, this program performs conformational search considering this configuration: `-gfn2 -gbsa h2o -mrest 5 -rthr 0.1 -ewin 12.0 -mquick -norotmd`. In case the user decides to use a different setting, `line 84` of this script should be modified with the desired arguments.
+By default, this program performs conformational search considering this configuration: `-gfn2 -gbsa h2o -mrest 10 -rthr 0.1 -ewin 12.0`. In case the user decides to use a different setting, `line 84` of this script should be modified with the desired arguments.
 
 
 ### Validate trained ML regression models
-The hyperparameters of trained ML models are included in pickle files in the [ZENODO repository](https://zenodo.org/records/17106019). The user can choose between XGBoost and KRR models trained for physicochemical properties, toxicity and lipophilicity prediction (we include only the best models per dataset and per regression model). The script `dataset2pred` allows the user to use these trained models to 1) Validate the results reported in the paper. 2) Perform inference in a new dataset of molecules. The flag `-v` serves for the objective (1), in this case, the user must include the employed training dataset (in HDF5 format), which can also be found in the [ZENODO repository](https://zenodo.org/records/17106019). 
+The hyperparameters of trained ML models are included in pickle files in the `models` directory (`krr_models.xz` and `xgb_models.xz`). The user can choose between XGBoost and KRR models trained for physicochemical properties, toxicity and lipophilicity prediction (we include only the best models per dataset and per regression model). The script `dataset2pred` allows the user to use these trained models to 1) Validate the results reported in the paper. 2) Perform inference in a new dataset of molecules. The flag `-v` serves for the objective (1), in this case, the user must include the employed training dataset (in HDF5 format), which can also be found in the `models` directory (`training_sets.xz`). 
 
 In the case of XGBoost, the trained pipeline is already included in the pickle file.
 ```bash
@@ -121,7 +121,7 @@ python3 dataset2pred.py -v -i /path/to/training_dataset.h5 -m /path/to/model.pkl
 python3 dataset2pred.py -i /path/to/new_dataset.h5 -m /path/to/model.pkl
 ```
 
-It is not convenient to record the KRR estimator in a pickle file (it would result in a GB-sized file), so instead, we saved all necessary parameters of the KRR model in the pickle file and re-train (or re-fit) the KRR model with the employed training dataset (in HDF5 format). Such training datasets are found in the [ZENODO repository](https://zenodo.org/records/17106019). 
+It is not convenient to record the KRR estimator in a pickle file (it would result in a GB-sized file), so instead, we saved all necessary parameters of the KRR model in the pickle file and re-train (or re-fit) the KRR model with the employed training dataset (in HDF5 format). Such training datasets are found in the `models` directory (`training_sets.xz`). 
 ```bash
 # validation
 python3 dataset2pred.py -v -i /path/to/training_dataset.h5 -m /path/to/model.pkl -t /path/to/training_dataset.h5
