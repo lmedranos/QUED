@@ -8,7 +8,7 @@ QUED is a machine learning framework for molecular property prediction that inte
 ## QM datasets
 The structural and property data of drug-like molecules in TDCommons-LD50 and MoleculeNet-Lipophilicity datasets can be downloaded from the ZENODO repository.
 
-[![ZENODO](https://zenodo.org/badge/DOI/10.5281/zenodo.10208010.svg)](https://zenodo.org/records/17106019)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10208010.svg)](https://zenodo.org/records/17106019)
 
 The dataset generation, training, and evaluation of the ML models were performed on CPUs with an x86_64 architecture.
 
