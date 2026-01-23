@@ -134,3 +134,18 @@ python3 dataset2pred.py -v -i /path/to/training_dataset.h5 -m /path/to/model.pkl
 
 ### Notebook
 The `qued.ipynb` notebook illustrates how to perform conformational search and QM calculations starting from a SMILE. It also allows the user to obtain the SHAP beeswarm plot for validation of the toxicity-predictive XGBoost model.
+
+## Citations
+If you use the dataset please cite
+```
+@Article{qued,
+author ="Hinostroza Caldas, Alejandra and Kokorin, Artem and Tkatchenko, Alexandre and Medrano Sandonas, Leonardo",
+title  ="Assessing the performance of quantum-mechanical descriptors in physicochemical and biological property prediction",
+journal  ="Digital Discovery",
+year  ="2026",
+pages  ="-",
+publisher  ="RSC",
+doi  ="10.1039/D5DD00411J",
+url  ="http://dx.doi.org/10.1039/D5DD00411J",
+}
+```
