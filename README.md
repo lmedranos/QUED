@@ -50,7 +50,7 @@ conda install conda-forge::crest
 
 Install [`dftb+`](https://dftbplus-recipes.readthedocs.io/en/latest/introduction.html) (version 24.1, see webpage for installation guidelines) to compute QM properties. 
 ```bash
-conda install 'dftbplus=*=24.1=mpi_openmpi_*'
+conda install 'dftbplus=24.1=mpi_openmpi_*'
 # additional components like the dptools and the Python API
 conda install dftbplus-tools dftbplus-python
 ```
