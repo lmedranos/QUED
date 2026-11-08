@@ -107,6 +107,12 @@ alias qued='eval "$(pixi shell-hook --manifest-path /path/to/QUED/pixi.toml)"'
 alias qued-gpu='eval "$(pixi shell-hook -e gpu --manifest-path /path/to/QUED/pixi.toml)"'
 ```
 
+Activating the environment also adds the repository to `PYTHONPATH`
+(`[activation.env]` in `pixi.toml`), so `import qued` works from any folder and
+edits to `qued/` take effect immediately; no `pip install -e .` is needed. A
+notebook kernel started directly from the interpreter path may skip activation;
+in that case add `sys.path.insert(0, "/path/to/QUED")` at the top of the notebook.
+
 ### 5. Tools not managed by pixi
 - [`dftb+`](https://dftbplus-recipes.readthedocs.io/en/latest/introduction.html)
   (version 24.1) is needed to compute DFTB properties. It **cannot share an

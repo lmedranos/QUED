@@ -41,6 +41,12 @@ optuna = "*"
 shap = "*"
 ipykernel = "*"      # lets Jupyter / VS Code notebooks use this environment
 
+# Make the repository importable (`import qued`) from any folder whenever the
+# environment is active. Edits to qued/ take effect immediately, like an
+# editable install.
+[activation.env]
+PYTHONPATH = "$PIXI_PROJECT_ROOT"
+
 # PyPI packages, resolved by uv. torch itself comes from conda-forge
 # (see the cpu/gpu features below); these packages reuse it.
 [pypi-dependencies]
