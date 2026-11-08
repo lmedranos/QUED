@@ -109,12 +109,19 @@ alias qued-gpu='eval "$(pixi shell-hook -e gpu --manifest-path /path/to/QUED/pix
 
 ### 5. Tools not managed by pixi
 - [`dftb+`](https://dftbplus-recipes.readthedocs.io/en/latest/introduction.html)
-  (version 24.1) is needed to compute DFTB properties; install it following its
-  documentation. Also replace the `dftb.py` file of the `ase` package with the one
+  (version 24.1) is needed to compute DFTB properties. It **cannot share an
+  environment with xtb 6.7.1** (used by crest), so DFTB+ and the scripts that call
+  it are kept as separate files and run in their own environment, e.g.:
+  ```bash
+  conda create -n qued-dftb -c conda-forge python=3.11 'dftbplus=24.1=mpi_openmpi_*' dftbplus-tools dftbplus-python ase
+  conda activate qued-dftb
+  ```
+  In that environment, replace the `dftb.py` file of the `ase` package with the one
   provided in this repository (it includes reference values for Hubbard derivatives):
   ```bash
-  cp dftb.py "$(pixi run python -c 'import ase.calculators.dftb as m; print(m.__file__)')"
+  cp dftb.py "$(python -c 'import ase.calculators.dftb as m; print(m.__file__)')"
   ```
+  The DFTB+ outputs are then read by the `qued` modules in the pixi environment.
 - [`KRR-OPT`](https://github.com/arkochem/krr-opt.git) for training KRR models.
 
 ### 6. Notes and troubleshooting
