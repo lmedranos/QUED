@@ -15,58 +15,119 @@ The structural and property data of drug-like molecules in TDCommons-LD50 and Mo
 The dataset generation, training, and evaluation of the ML models were performed on CPUs with an x86_64 architecture.
 
 ## Installation
-QUED requires a `conda` environment with `python 3.9`.
+All Python dependencies are managed with [pixi](https://pixi.sh) through
+`pixi.toml` (what to install) and `pixi.lock` (the exact, reproducible versions).
+
+`pixi.toml` defines two environments that share every package except PyTorch:
+
+| Environment | Platforms | PyTorch | Use it for |
+|---|---|---|---|
+| `default` | macOS (Apple Silicon, macOS ≥ 14), Linux | 2.13, CPU build (MPS on Mac) | laptop work, CPU jobs |
+| `gpu` | Linux only (glibc ≥ 2.34, CUDA 13 driver) | 2.13, CUDA 13.0 build | GPU jobs on a cluster |
+
+Main packages: numpy, scipy, pandas, matplotlib, h5py, scikit-learn, rdkit, ase,
+crest + xtb, dscribe, optuna, shap, xgboost 2.1.4, py3Dmol, mace-torch,
+e3nn 0.5.1, chemprop, skala, ipykernel.
+
+### 1. Install pixi
 ```bash
-conda create -n qued python=3.9
-conda activate qued
+curl -fsSL https://pixi.sh/install.sh | sh
+```
+This installs a single binary into `~/.pixi/bin` (no admin rights needed). Open a
+new terminal afterwards and check with `pixi --version`.
+
+### 2. Local installation (Mac / laptop)
+From the repository root:
+```bash
+pixi install
+```
+This creates the CPU environment in `.pixi/envs/default` (the `gpu` environment is
+Linux-only and is not installed on a Mac). Use it with:
+```bash
+pixi shell                      # activate (like `conda activate`); `exit` to leave
+pixi run python script.py       # or run a single command without activating
 ```
 
-To avoid conflicts with other libraries, we install the [`qml`](https://www.qmlcode.org/installation.html) package first. `qml` is installed to generate BoB and SLATM descriptors. 
-```bash
-pip install qml
-```
-> `qml` works with Intel libraries, therefore load such libraries before running any code that requires `qml`
+**Jupyter notebooks in VS Code:** choose **Select Kernel → Python Environments** and
+pick the environment whose path ends in `.pixi/envs/default`. If it is not listed,
+run **Python: Clear Cache and Reload Window**, or choose **Enter interpreter path**
+and give `/path/to/QUED/.pixi/envs/default/bin/python`.
 
-Other useful packages should also be installed.
+### 3. HPC cluster installation
+**Keep pixi files out of `$HOME` (once per cluster).** Home directories are small and
+limit the number of files. Put the package cache and the environments on your
+workspace / project filesystem (not on a scratch area that gets purged):
 ```bash
-conda install -c conda-forge 'joblib>=1.3.0' 'scipy>=1.11.0' 'numpy>1.23.0,<1.24.0' 'matplotlib>=3.7.0' 'scikit-learn>=1.5.0'
-conda install pandas h5py
+echo 'export PIXI_CACHE_DIR=/path/to/workspace/.cache/pixi' >> ~/.bashrc
+source ~/.bashrc
+pixi config set --global detached-environments /path/to/workspace/.pixi-envs
+```
+Keep both on the same filesystem so pixi can hard-link instead of copying.
+`pixi info` shows where everything ends up.
+
+**Install the environments** on a login node (compute nodes usually have no
+internet access), from the repository root:
+```bash
+pixi install              # CPU environment
+pixi install -e gpu       # GPU environment
+```
+If the login node has no GPU and pixi complains that CUDA is not available, run
+`CONDA_OVERRIDE_CUDA=13.0 pixi install -e gpu`.
+
+**Slurm jobs:**
+```bash
+#!/bin/bash
+#SBATCH --job-name=qued-cpu
+#SBATCH --cpus-per-task=8
+#SBATCH --time=02:00:00
+
+cd /path/to/QUED
+eval "$(pixi shell-hook)"            # CPU environment
+python script.py
+```
+```bash
+#!/bin/bash
+#SBATCH --job-name=qued-gpu
+#SBATCH --gres=gpu:1
+#SBATCH --time=02:00:00
+
+cd /path/to/QUED
+eval "$(pixi shell-hook -e gpu)"     # GPU environment
+python train.py
+```
+You can also run `pixi run -e gpu python train.py` without activating.
+
+### 4. Using the environment from any folder
+pixi looks for `pixi.toml` in the current folder and its parents. From anywhere
+else, point to it explicitly, or define aliases in `~/.bashrc` / `~/.zshrc`:
+```bash
+pixi run --manifest-path /path/to/QUED/pixi.toml python script.py
+
+alias qued='eval "$(pixi shell-hook --manifest-path /path/to/QUED/pixi.toml)"'
+alias qued-gpu='eval "$(pixi shell-hook -e gpu --manifest-path /path/to/QUED/pixi.toml)"'
 ```
 
-Install `dscribe` to generate the SOAP descriptor.
-```bash
-conda install -c conda-forge dscribe
-```
+### 5. Tools not managed by pixi
+- [`dftb+`](https://dftbplus-recipes.readthedocs.io/en/latest/introduction.html)
+  (version 24.1) is needed to compute DFTB properties; install it following its
+  documentation. Also replace the `dftb.py` file of the `ase` package with the one
+  provided in this repository (it includes reference values for Hubbard derivatives):
+  ```bash
+  cp dftb.py "$(pixi run python -c 'import ase.calculators.dftb as m; print(m.__file__)')"
+  ```
+- [`KRR-OPT`](https://github.com/arkochem/krr-opt.git) for training KRR models.
 
-Install `rdkit` for conversion of SMILES to 3D coordinates
-```bash
-conda install -c conda-forge rdkit
-```
-
-Install `crest` for performing conformational search
-```bash
-conda install conda-forge::crest
-```
-
-Install [`dftb+`](https://dftbplus-recipes.readthedocs.io/en/latest/introduction.html) (version 24.1, see webpage for installation guidelines) to compute QM properties. 
-```bash
-conda install 'dftbplus=24.1=mpi_openmpi_*'
-# additional components like the dptools and the Python API
-conda install dftbplus-tools dftbplus-python
-```
-
-For the same purpose, the user should also install `ase` and replace the `dftb.py` file of the `ase` package with the one provided in this repository. This one includes calculated reference values for Hubbard Derivatives.
-```bash
-conda install conda-forge::ase
-cp dftb.py /path/to/.conda/envs/qued/lib/python3.9/site-packages/ase/calculators/dftb.py
-```
-
-The following packages are needed for training XGBoost models
-```bash
-conda install -c conda-forge py-xgboost optuna shap
-```
-
-Finally, install the `KRR-OPT` tool from the [krr-opt repository](https://github.com/arkochem/krr-opt.git).
+### 6. Notes and troubleshooting
+- **e3nn 0.5.1 override.** `mace-torch` pins an older e3nn, but 0.5.1 is needed to
+  use skala and MACE together. `pixi.toml` overrides the pin
+  (`[pypi-options.dependency-overrides]`); this works in practice.
+- **PyTorch comes from conda-forge, not PyPI.** The PyPI wheel bundles its own
+  OpenMP library and crashes on import (`OMP: Error #15`) next to the conda-forge
+  packages. Do not `pip install torch` into these environments.
+- **Rebuild an environment from scratch:** `pixi clean -e default` (or `-e gpu`),
+  then `pixi install` again.
+- **Update packages:** edit `pixi.toml` (or run `pixi update`), check that everything
+  still works, and commit the new `pixi.lock`.
 
 ## Command Line Interface
 The `qued` directory includes scripts that can be used as standalone executables. 

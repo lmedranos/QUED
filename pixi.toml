@@ -1,0 +1,81 @@
+# qued environment — pixi manifest
+#
+# Two environments from one file:
+#   cpu  (default) : macOS (Apple Silicon) and Linux, CPU-only torch
+#   gpu            : Linux cluster, torch built for CUDA 13.0
+#
+# Install / use:
+#   pixi install                 # cpu environment
+#   pixi install -e gpu          # gpu environment (on the cluster)
+#   pixi shell   [-e gpu]        # activate (like `conda activate qued`)
+#   eval "$(pixi shell-hook -e gpu)"   # activation inside a Slurm script
+
+[workspace]
+name = "qued"
+channels = ["conda-forge"]
+# Platforms with the system capabilities they assume (virtual packages):
+#   mac        : Apple Silicon, macOS >= 14 (torch 2.13 wheels need it)
+#   linux-cpu  : cluster, glibc 2.34
+#   linux-cuda : cluster, glibc 2.34 + CUDA 13 driver
+platforms = [
+  { name = "mac", platform = "osx-arm64", macos = "14.0" },
+  { name = "linux-cpu", platform = "linux-64", glibc = "2.34" },
+  { name = "linux-cuda", platform = "linux-64", glibc = "2.34", cuda = "13" },
+]
+
+# ---------------------------------------------------------------- common
+# conda-forge packages (shared by both environments)
+[dependencies]
+python = "3.11.*"
+numpy = "*"
+scipy = "*"
+matplotlib = "*"
+pandas = "*"
+h5py = "*"
+scikit-learn = "*"
+rdkit = "*"
+ase = "*"
+crest = "*"          # conda-only (not on PyPI)
+dscribe = "*"
+optuna = "*"
+shap = "*"
+ipykernel = "*"      # lets Jupyter / VS Code notebooks use this environment
+
+# PyPI packages, resolved by uv. torch itself comes from conda-forge
+# (see the cpu/gpu features below); these packages reuse it.
+[pypi-dependencies]
+xgboost = "==2.1.4"
+py3Dmol = "*"
+mace-torch = "*"
+e3nn = "==0.5.1"
+chemprop = "*"
+skala = "*"
+
+[pypi-options.dependency-overrides]
+# mace-torch pins an older e3nn; 0.5.1 is required for skala + mace together
+# (works in practice, see the upstream GitHub issue). Remove once mace-torch
+# officially supports e3nn 0.5.x.
+e3nn = "==0.5.1"
+
+# ---------------------------------------------------------------- cpu
+[feature.cpu]
+platforms = ["mac", "linux-cpu"]
+
+# torch comes from conda-forge (not PyPI) so it shares the OpenMP runtime with
+# numpy/scipy/rdkit/xtb. The PyPI wheel bundles its own libomp and crashes with
+# "OMP: Error #15" on import. pixi maps conda `pytorch` to PyPI `torch`, so
+# mace-torch / chemprop / skala reuse it instead of pulling a second torch.
+[feature.cpu.dependencies]
+pytorch = { version = "2.13.*", build = "cpu_*" }
+
+# ---------------------------------------------------------------- gpu
+[feature.gpu]
+platforms = ["linux-cuda"]
+
+[feature.gpu.dependencies]
+pytorch = { version = "2.13.*", build = "cuda130*" }
+
+# ---------------------------------------------------------------- environments
+[environments]
+default = { features = ["cpu"] }
+gpu = { features = ["gpu"] }
