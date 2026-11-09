@@ -29,6 +29,9 @@ from mace.calculators import MACECalculator, mace_polar
 XTB = shutil.which("xtb") or str(Path(sys.executable).with_name("xtb"))
 AU2DEBYE = 2.541746
 
+if torch.cuda.is_available():
+    from skala.gpu4pyscf import SkalaKS as SkalaKS_GPU
+
 logger = logging.getLogger(__name__)
 logging.basicConfig(
     level=logging.INFO,
@@ -139,43 +142,22 @@ class SkalaModalCalculator(QUEDModalCalculator):
         super().__init__(output_directory=output_directory)
         if device is None:
             device = "cuda" if torch.cuda.is_available() else "cpu"
-        device = torch.device(device)
-        # Skala compares devices strictly: 'cuda' != 'cuda:0'
-        if device.type == "cuda" and device.index is None:
-            device = torch.device("cuda", torch.cuda.current_device())
-        self.device = device
+        self.device = torch.device(device)
 
     def calculate(self, xyz_block: str, charge: int, **kwargs) -> Path:
-        label = kwargs.get('label', 'current_skala')
-        output_directory = Path(self.output_path).resolve()
-        n_threads = kwargs.get('n_threads', os.cpu_count())
-        # Set number of CPU threads
-        lib.num_threads(n_threads)
-        
-        # Directory to store <label>.out file (relevant output)
-        skala_directory = output_directory / "skala"
-        skala_directory.mkdir(parents=True, exist_ok=True)
-                
-        start = time.perf_counter()
-        raw_output = skala_directory / f'{label}.out'
-        # Define Molecule object
-        params = dict(basis="def2-tzvp",
-                      output=raw_output, verbose=3)
-        if charge!=0: 
-            params.update(dict(charge=charge))
-        if 'I' in xyz_block:
-            params.update(dict(ecp={'I':'def2-TZVP'}))
+        ...
         mol = gto.M(atom=xyz_block, **params)
-        mol.unit = 'Angstrom'
-        # Define Calculator with Skala
-        ks = SkalaKS(mol, xc="skala-1.1", ks_config={"conv_tol": 1e-6},
-                     device=self.device)
+        cfg = {"conv_tol": 1e-6}
+        if self.device.type == "cuda":
+            # Whole SCF on GPU (GPU4PySCF). Imported here: it fails on machines without CUDA.
+            ks = SkalaKS_GPU(mol, xc="skala-1.1", ks_config=cfg)
+        else:
+            ks = SkalaKS(mol, xc="skala-1.1", ks_config=cfg)   # skala.pyscf, CPU
         # Calculate QM properties: Energies, Dipole, eMOs, and atomic charges
         try:
-            # Run calculation
             ks.kernel()
             ks.dump_scf_summary()
-            (_, mulliken), dipole = ks.analyze() 
+            (_, mulliken), dipole = ks.analyze()
         except Exception as e:
             logger.exception(f"Skala calculation failed")
             raise RuntimeError(
