@@ -55,7 +55,10 @@ py3Dmol = "*"
 mace-torch = "*"
 e3nn = "==0.5.1"
 chemprop = "*"
-skala = "*"
+# 2026.9 calls block_loop(strict_grid_order=...), which no released
+# gpu4pyscf (<= 1.9.1) supports -> Skala on GPU fails. Pinned in both
+# environments so CPU and GPU results come from the same Skala version.
+skala = "==2026.8"
 
 [pypi-options.dependency-overrides]
 # mace-torch pins an older e3nn; 0.5.1 is required for skala + mace together
