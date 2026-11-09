@@ -1,33 +1,28 @@
 # requirements
-from dataclasses import dataclass
 from abc import ABC, abstractmethod
-from typing import Dict, Iterable, Iterator, Mapping, Optional, Sequence, Tuple
+from typing import Dict
 
 import os
-import time
-import shutil
-import logging
-import shlex
 import io
-from io import StringIO
-from pathlib import Path
-import h5py
-import pandas as pd
-import numpy as np
-from rdkit import Chem
-import json
-import zipfile
-import subprocess
 import re
+import sys
+import time
+import json
+import shutil
+import zipfile
+import logging
+import subprocess
+from pathlib import Path
+
+import h5py
+import numpy as np
 import torch
 
 from pyscf import gto, lib
 from skala.pyscf import SkalaKS
 from ase.io import read, write
 from ase.units import Hartree
-from ase.data import atomic_numbers
-from ase.calculators.dftb import Dftb
-from ase.optimize import QuasiNewton, BFGS
+from ase.optimize import BFGS
 from ase.vibrations import Vibrations
 from mace.calculators import MACECalculator, mace_polar
 
