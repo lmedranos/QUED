@@ -80,6 +80,10 @@ platforms = ["linux-cuda"]
 
 [feature.gpu.dependencies]
 pytorch = { version = "2.13.*", build = "cuda130*" }
+# CUDA headers (cuda.h). Triton compiles a small C helper the first time it
+# runs a GPU kernel (used by MACE/e3nn/torch.compile) and needs them;
+# without it: "fatal error: cuda.h: No such file or directory".
+cuda-cudart-dev = "*"
 
 # ---------------------------------------------------------------- environments
 [environments]

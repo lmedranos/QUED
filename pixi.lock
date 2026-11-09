@@ -635,6 +635,8 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/crest-3.0.2-h8876d29_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/cuda-crt-tools-13.5.37-ha770c72_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/cuda-cudart-13.5.37-h393e864_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/cuda-cudart-dev-13.5.37-h393e864_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/cuda-cudart-static-13.5.37-h393e864_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/cuda-cuobjdump-13.5.37-h0cf1943_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/cuda-cupti-13.5.25-h393e864_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/cuda-nvcc-tools-13.5.37-hecca717_0.conda
@@ -843,6 +845,9 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/comm-0.2.3-pyhe01879c_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cpython-3.11.18-py311hd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cuda-arch-7.5-cuda13_ha2a1b47_3.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/cuda-cccl_linux-64-13.3.5.0.6-ha770c72_1.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/cuda-cudart-dev_linux-64-13.5.37-h528332f_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/cuda-cudart-static_linux-64-13.5.37-h528332f_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cuda-cudart_linux-64-13.5.37-h528332f_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cuda-version-13.5-h3499c3b_3.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cycler-0.12.1-pyhcf101f3_2.conda
@@ -1323,6 +1328,38 @@ packages:
   run_exports: {}
   size: 27967
   timestamp: 1793838739307
+- conda: https://conda.anaconda.org/conda-forge/linux-64/cuda-cudart-dev-13.5.37-h393e864_0.conda
+  sha256: f6033e69c021f1c5be9bc69eecf54240521338b8901d34589979bbbeadfa6658
+  md5: 2ddacc186c5ad89849047eb6990ba5f1
+  depends:
+  - __glibc >=2.28,<3.0.a0
+  - cuda-cudart 13.5.37 h393e864_0
+  - cuda-cudart-dev_linux-64 13.5.37 h528332f_0
+  - cuda-cudart-static 13.5.37 h393e864_0
+  - cuda-version >=13.5,<13.6.0a0
+  - libgcc >=15
+  - libstdcxx >=15
+  license: LicenseRef-NVIDIA-End-User-License-Agreement
+  purls: []
+  run_exports:
+    weak:
+    - cuda-cudart >=13.5.37,<14.0a0
+  size: 28519
+  timestamp: 1793838746726
+- conda: https://conda.anaconda.org/conda-forge/linux-64/cuda-cudart-static-13.5.37-h393e864_0.conda
+  sha256: 03191c243d5308fe2346f03ff8f53b973257fa3d62730aba5db95fba1f3c9ecb
+  md5: 95b7e7630bddcee394292f9958ffe528
+  depends:
+  - __glibc >=2.28,<3.0.a0
+  - cuda-cudart-static_linux-64 13.5.37 h528332f_0
+  - cuda-version >=13.5,<13.6.0a0
+  - libgcc >=15
+  - libstdcxx >=15
+  license: LicenseRef-NVIDIA-End-User-License-Agreement
+  purls: []
+  run_exports: {}
+  size: 27924
+  timestamp: 1793838744605
 - conda: https://conda.anaconda.org/conda-forge/linux-64/cuda-cuobjdump-13.5.37-h0cf1943_0.conda
   sha256: 356bc406dfa7d15a3cad295b3dd5c7e09e8312335364ada644dbadda9d5239cc
   md5: 8a1499fbe211ad3e85a3fe9652075f6c
@@ -5047,6 +5084,41 @@ packages:
     - cuda-arch >=7.5
   size: 17412
   timestamp: 1792460546827
+- conda: https://conda.anaconda.org/conda-forge/noarch/cuda-cccl_linux-64-13.3.5.0.6-ha770c72_1.conda
+  sha256: 4d68f73e6f19260129e360264772288b5b0ff165ed63aba23ef3fd9e64895f16
+  md5: 2cf1263c02e4d0e3cca81508dde9c1a3
+  depends:
+  - cuda-version >=13.5,<13.6.0a0
+  license: LicenseRef-NVIDIA-End-User-License-Agreement
+  purls: []
+  run_exports: {}
+  size: 1763559
+  timestamp: 1794008634577
+- conda: https://conda.anaconda.org/conda-forge/noarch/cuda-cudart-dev_linux-64-13.5.37-h528332f_0.conda
+  sha256: ef926bc9b35be692843c7eae9b6c8cfed9dbcd47ac3cb25b6eda18a40cdcf84c
+  md5: cb645f45e80f8464a37f525667a2700d
+  depends:
+  - cuda-cccl_linux-64
+  - cuda-cudart-static_linux-64
+  - cuda-cudart_linux-64
+  - cuda-version >=13.5,<13.6.0a0
+  license: LicenseRef-NVIDIA-End-User-License-Agreement
+  purls: []
+  run_exports:
+    weak:
+    - cuda-cudart >=13.5.37,<14.0a0
+  size: 424774
+  timestamp: 1793838742641
+- conda: https://conda.anaconda.org/conda-forge/noarch/cuda-cudart-static_linux-64-13.5.37-h528332f_0.conda
+  sha256: bce31f6f68dcb7d40a99cdebf4da574000f01c4d61e5e2b0948061efcbdf475e
+  md5: 2295e382e56fcdd44710eefa0388d40a
+  depends:
+  - cuda-version >=13.5,<13.6.0a0
+  license: LicenseRef-NVIDIA-End-User-License-Agreement
+  purls: []
+  run_exports: {}
+  size: 1231982
+  timestamp: 1793838734706
 - conda: https://conda.anaconda.org/conda-forge/noarch/cuda-cudart_linux-64-13.5.37-h528332f_0.conda
   sha256: 42669cb43e0174bdf11644479cf469303c96593f49b58de6086511d409a6ca96
   md5: 0ff76002d4457f91a3d465fad8953acf
