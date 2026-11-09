@@ -145,8 +145,28 @@ class SkalaModalCalculator(QUEDModalCalculator):
         self.device = torch.device(device)
 
     def calculate(self, xyz_block: str, charge: int, **kwargs) -> Path:
-        ...
+        label = kwargs.get('label', 'current_skala')
+        output_directory = Path(self.output_path).resolve()
+        n_threads = kwargs.get('n_threads', os.cpu_count())
+        # Set number of CPU threads
+        lib.num_threads(n_threads)
+
+        # Directory to store <label>.out file (relevant output)
+        skala_directory = output_directory / "skala"
+        skala_directory.mkdir(parents=True, exist_ok=True)
+
+        start = time.perf_counter()
+        raw_output = skala_directory / f'{label}.out'
+        # Define Molecule object
+        params = dict(basis="def2-tzvp",
+                      output=raw_output, verbose=3)
+        if charge!=0:
+            params.update(dict(charge=charge))
+        if 'I' in xyz_block:
+            params.update(dict(ecp={'I':'def2-TZVP'}))
         mol = gto.M(atom=xyz_block, **params)
+        mol.unit = 'Angstrom'
+        # Define Calculator with Skala
         cfg = {"conv_tol": 1e-6}
         if self.device.type == "cuda":
             # Whole SCF on GPU (GPU4PySCF). Imported here: it fails on machines without CUDA.
