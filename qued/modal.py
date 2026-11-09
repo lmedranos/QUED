@@ -211,7 +211,7 @@ class SkalaModalCalculator(QUEDModalCalculator):
         for i, line in enumerate(lines):
             # Extract energy contributions (in H)
             if line.strip().startswith("Total Energy"):
-                properties['total_energy_Eh'] = float(line.split()[4])
+                properties['total_energy_Eh'] = float(line.split()[-1])
             if line.strip().startswith("Nuclear Repulsion Energy"):
                 properties['nuclear_repulsion_energy_Eh'] = float(line.split()[4])
             if line.strip().startswith("One-electron Energy"):
