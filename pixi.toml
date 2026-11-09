@@ -84,6 +84,13 @@ pytorch = { version = "2.13.*", build = "cuda130*" }
 # runs a GPU kernel (used by MACE/e3nn/torch.compile) and needs them;
 # without it: "fatal error: cuda.h: No such file or directory".
 cuda-cudart-dev = "*"
+# gpu4pyscf dependency; source-only on PyPI, so take the conda-forge build
+geometric = "*"
+
+# Skala on GPU (SkalaKS(..., device="cuda") and skala.gpu4pyscf) needs CuPy and
+# GPU4PySCF; the CUDA 13 build pulls cupy-cuda13x and gpu4pyscf-libxc-cuda13x.
+[feature.gpu.pypi-dependencies]
+gpu4pyscf-cuda13x = "*"
 
 # ---------------------------------------------------------------- environments
 [environments]
