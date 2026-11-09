@@ -139,7 +139,11 @@ class SkalaModalCalculator(QUEDModalCalculator):
         super().__init__(output_directory=output_directory)
         if device is None:
             device = "cuda" if torch.cuda.is_available() else "cpu"
-        self.device = torch.device(device)
+        device = torch.device(device)
+        # Skala compares devices strictly: 'cuda' != 'cuda:0'
+        if device.type == "cuda" and device.index is None:
+            device = torch.device("cuda", torch.cuda.current_device())
+        self.device = device
 
     def calculate(self, xyz_block: str, charge: int, **kwargs) -> Path:
         label = kwargs.get('label', 'current_skala')
@@ -308,7 +312,7 @@ class VibraModalCalculator(QUEDModalCalculator):
         # Calculate vibrational frequencies (3N-6 nonlinear, 3N-5 linear mol)
         vib = Vibrations(amol, delta=0.01, nfree=4, name=str(work_directory / "vibrations"))
         vib.run()
-        vib.summary()
+        # vib.summary()
         # Vibrational energies (complex values in eV)
         vb_ev = vib.get_energies()
         # Vibrational frequencies (potentially complex in cm-1)
