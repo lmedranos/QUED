@@ -127,7 +127,7 @@ class QUEDModalCalculator(ABC):
 
         return True
 
-    def save_in_hdf5(self, hf_path, properties, molid, confid):
+    def save_in_hdf5(self, properties, molid, confid, hf_path):
         """Store properties under <molid>/<confid>/<modal name>/...
         Nested dicts (e.g. xTB {'gas': {...}, 'sol': {...}}) become subgroups."""
         with h5py.File(hf_path, "a") as hf:

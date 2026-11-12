@@ -449,9 +449,10 @@ class QUEDDatasetStructureCalculator:
         df.to_csv(selection_path, index=False)
         return selection_path
 
-    def save_in_hdf5(self, label, molid, confid, mode='optimized'):
+    def save_in_hdf5(self, molid, confid, hf_path=None, mode='optimized'):
         # Save geometry in HDF5 file
-        hf_path = self.output_path / f"{label}.h5"
+        if hf_path is None:
+            hf_path = self.output_path / f"{mode}.h5"
         compress_mode = {'compression':"gzip", 'compression_opts':4}
         
         with h5py.File(hf_path, 'a') as hf:
