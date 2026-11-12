@@ -24,7 +24,7 @@ from ase.io import read, write
 from ase.units import Hartree
 from ase.optimize import BFGS
 from ase.vibrations import Vibrations
-from mace.calculators import MACECalculator, mace_polar
+from mace.calculators import MACECalculator, mace_polar, mace_omol
 
 XTB = shutil.which("xtb") or str(Path(sys.executable).with_name("xtb"))
 AU2DEBYE = 2.541746
@@ -267,8 +267,9 @@ class VibraModalCalculator(QUEDModalCalculator):
         kw = dict(device=self.device, default_dtype="float64")
         if model == 'omol':
             if model_path is None:
-                raise ValueError("model='omol' needs model_path (local .model file)")
-            self.mace_calculator = MACECalculator(model_paths=model_path, **kw)
+                self.mace_calculator = mace_omol(model="extra_large", **kw)
+            else:
+                self.mace_calculator = MACECalculator(model_paths=model_path, **kw)
         elif model == 'polar-m':
             self.mace_calculator = mace_polar(model="polar-1-m", **kw)
         elif model == 'polar-l':
