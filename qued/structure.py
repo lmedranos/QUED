@@ -352,6 +352,7 @@ class QUEDStructureCalculator:
             f"Conformers: {n_conformers}. "
             f"Time: {elapsed:.1f} s"
             )
+        return n_conformers
 
 class QUEDDatasetStructureCalculator:
     def __init__(self, 
@@ -417,37 +418,11 @@ class QUEDDatasetStructureCalculator:
         charge = self.df.charge[idx] if 'charge' in self.df.columns else 0
         if crest_options is None:
             crest_options = f"-chrg {charge} -gfn2 -gbsa h2o -mrest 5 -rthr 0.1 -ewin 12.0 -mquick -norotmd"
-        QUEDStructureCalculator.conformational_search(initial_xyz,
+        n_conformers = QUEDStructureCalculator.conformational_search(initial_xyz,
                                                       self.output_path,
                                                       crest_options,
                                                       n_threads)
-
-    def select_conformers(self, by='stable'):
-        conformer_directory = self.output_path / "conformers"
-        if not conformer_directory.is_dir():
-            logger.info(f"Run conformational_search first to get conformers.")
-            return None
-
-        molIDs, confIDs, charges, xTBenergies = [], [], [], []
-        # Extract conformer with the lowest xTB energy (the first in the CRE)
-        if by=='stable':
-            for idx, molid in enumerate(self.ids):
-                charge = self.df.charge[idx] if 'charge' in self.df.columns else 0
-                conformers_path = conformer_directory / f"{molid}.xyz"
-                if not conformers_path.is_file():
-                    continue
-                _, energy = next(self.read_xyz_frames(conformers_path))
-                molIDs.append(molid)
-                confIDs.append(0)
-                charges.append(charge)
-                xTBenergies.append(energy)
-        # Other selection methods can be implemented
-
-        # Write CSV file with indices of selected conformers
-        selection_path = self.output_path / f"{self.csv_path.stem}_{by}.csv"
-        df = pd.DataFrame({'molID': molIDs, 'confID': confIDs, 'charge': charges, 'xTBenergy': xTBenergies})
-        df.to_csv(selection_path, index=False)
-        return selection_path
+        return n_conformers
 
     def save_in_hdf5(self, molid, confid, hf_path=None, mode='optimized'):
         # Save geometry in HDF5 file
