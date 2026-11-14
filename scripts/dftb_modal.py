@@ -218,15 +218,15 @@ class DFTBModalCalculator:
             return cast(m.group(1)) if m else None
 
         num = r"(-?\d+\.\d+(?:[EeDd][+-]?\d+)?)"
-        p['Fermi_energy_H'] = first(rf"^Fermi level:\s+{num}\s+H")
-        p['band_energy_H'] = first(rf"^Band energy:\s+{num}\s+H")
+        p['Fermi_energy_Eh'] = first(rf"^Fermi level:\s+{num}\s+H")
+        p['band_energy_Eh'] = first(rf"^Band energy:\s+{num}\s+H")
         p['number_electrons'] = first(rf"^Input / Output electrons \(q\):\s+\S+\s+{num}")
-        p['h0_energy_H'] = first(rf"^Energy H0:\s+{num}\s+H")
-        p['scc_energy_H'] = first(rf"^Energy SCC:\s+{num}\s+H")
-        p['3rd_corr_energy_H'] = first(rf"^Energy 3rd:\s+{num}\s+H")
-        p['repulsive_energy_H'] = first(rf"^Repulsive energy:\s+{num}\s+H")
-        p['dispersion_energy_H'] = first(rf"^Dispersion energy:\s+{num}\s+H")
-        p['total_energy_H'] = first(rf"^Total energy:\s+{num}\s+H")
+        p['h0_energy_Eh'] = first(rf"^Energy H0:\s+{num}\s+H")
+        p['scc_energy_Eh'] = first(rf"^Energy SCC:\s+{num}\s+H")
+        p['3rd_corr_energy_Eh'] = first(rf"^Energy 3rd:\s+{num}\s+H")
+        p['repulsive_energy_Eh'] = first(rf"^Repulsive energy:\s+{num}\s+H")
+        p['dispersion_energy_Eh'] = first(rf"^Dispersion energy:\s+{num}\s+H")
+        p['total_energy_Eh'] = first(rf"^Total energy:\s+{num}\s+H")
         m = re.search(rf"^Dipole moment:\s+{num}\s+{num}\s+{num}\s+au", detailed, flags=re.M)
         p['dipole_vector_debye'] = np.array([float(x) for x in m.groups()]) * AU2DEBYE if m else None
 
