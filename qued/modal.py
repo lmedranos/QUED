@@ -94,6 +94,7 @@ def _write_group(group: h5py.Group, properties: dict) -> None:
 
 class QUEDModalCalculator(ABC):
     name: str = "" # modality label, e.g., "dftb", "skala"
+    extension: str = ".zip"
 
     def __init__(self, output_directory='.'):
         if not self.name:
@@ -104,6 +105,10 @@ class QUEDModalCalculator(ABC):
     @abstractmethod
     def calculate(self, xyz_block: str, charge: int, **kwargs) -> Path:
         """Run the method and return the path of the raw output file."""
+
+    def output_file(self, label: str) -> Path:
+        """Path where calculate() stores the raw output for <label>."""
+        return self.output_path / self.name / f"{label}{self.extension}"
  
     @abstractmethod
     def is_valid(self, raw_output: Path) -> bool:
@@ -139,6 +144,7 @@ class QUEDModalCalculator(ABC):
 class SkalaModalCalculator(QUEDModalCalculator):
     def __init__(self, output_directory='.', device=None):
         self.name = 'skala'
+        extension = ".out"
         super().__init__(output_directory=output_directory)
         if device is None:
             device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -156,10 +162,10 @@ class SkalaModalCalculator(QUEDModalCalculator):
         skala_directory.mkdir(parents=True, exist_ok=True)
 
         start = time.perf_counter()
-        raw_output = skala_directory / f'{label}.out'
+        destination = self.output_file(label)
         # Define Molecule object
         params = dict(basis="def2-tzvp",
-                      output=raw_output, verbose=3)
+                      output=destination, verbose=3)
         if charge!=0:
             params.update(dict(charge=charge))
         if 'I' in xyz_block:
@@ -189,7 +195,7 @@ class SkalaModalCalculator(QUEDModalCalculator):
             f"Molecule {label}: Success. "
             f"Time: {elapsed:.1f} s"
             )
-        return raw_output
+        return destination
 
     def is_valid(self, raw_output: Path) -> bool:
         # Empty file
@@ -260,6 +266,7 @@ class SkalaModalCalculator(QUEDModalCalculator):
 class VibraModalCalculator(QUEDModalCalculator):
     def __init__(self, output_directory='.', model='omol', model_path=None, device=None):
         self.name = 'vibra'
+        extension = ".zip"
         super().__init__(output_directory=output_directory)
         self.KEEP = ["optimized_geometry.xyz", "vibrational_data.txt"]
         self.model = model
@@ -335,7 +342,7 @@ class VibraModalCalculator(QUEDModalCalculator):
         # vib.write_jmol()
 
         # Store files in a single zip file
-        destination = vibra_directory / f"{label}.zip"
+        destination = self.output_file(label)
         with zipfile.ZipFile(destination, "w", zipfile.ZIP_DEFLATED) as z:
             for fname in self.KEEP:
                 f = work_directory / fname
@@ -378,6 +385,7 @@ class VibraModalCalculator(QUEDModalCalculator):
 class XTBModalCalculator(QUEDModalCalculator):
     def __init__(self, output_directory='.'):
         self.name = 'xtb'
+        extension = ".zip"
         super().__init__(output_directory=output_directory)
         self.phases = {"gas": [], "solvent": ["--gbsa", "water"]}
         self.KEEP = ("xtb.log", "xtbout.json", "wbo", "vibspectrum")
@@ -455,7 +463,7 @@ class XTBModalCalculator(QUEDModalCalculator):
                 return None
 
         # Store files in a single zip file
-        destination = xtb_directory / f"{label}.zip"
+        destination = self.output_file(label)
         with zipfile.ZipFile(destination, "w", zipfile.ZIP_DEFLATED) as z:
             for phase in self.phases:
                 for fname in self.KEEP:
