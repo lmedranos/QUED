@@ -144,7 +144,7 @@ class QUEDModalCalculator(ABC):
 class SkalaModalCalculator(QUEDModalCalculator):
     def __init__(self, output_directory='.', device=None):
         self.name = 'skala'
-        extension = ".out"
+        self.extension = ".out"
         super().__init__(output_directory=output_directory)
         if device is None:
             device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -266,7 +266,7 @@ class SkalaModalCalculator(QUEDModalCalculator):
 class VibraModalCalculator(QUEDModalCalculator):
     def __init__(self, output_directory='.', model='omol', model_path=None, device=None):
         self.name = 'vibra'
-        extension = ".zip"
+        self.extension = ".zip"
         super().__init__(output_directory=output_directory)
         self.KEEP = ["optimized_geometry.xyz", "vibrational_data.txt"]
         self.model = model
@@ -387,7 +387,7 @@ class VibraModalCalculator(QUEDModalCalculator):
 class XTBModalCalculator(QUEDModalCalculator):
     def __init__(self, output_directory='.'):
         self.name = 'xtb'
-        extension = ".zip"
+        self.extension = ".zip"
         super().__init__(output_directory=output_directory)
         self.phases = {"gas": [], "solvent": ["--gbsa", "water"]}
         self.KEEP = ("xtb.log", "xtbout.json", "wbo", "vibspectrum")
@@ -488,8 +488,8 @@ class XTBModalCalculator(QUEDModalCalculator):
             return False
         with zipfile.ZipFile(raw_output) as z:
             return all(
-                f"{p}/xtb.out" in z.namelist()
-                and b"normal termination of xtb" in z.read(f"{p}/xtb.out")
+                f"{p}/xtb.log" in z.namelist()
+                and b"normal termination of xtb" in z.read(f"{p}/xtb.log")
                 for p in self.phases
             )
 
