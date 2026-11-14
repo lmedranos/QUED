@@ -359,9 +359,11 @@ class VibraModalCalculator(QUEDModalCalculator):
 
     def is_valid(self, raw_output: Path) -> bool:
         # Empty file
-        if os.path.getsize(raw_output)==0:
+        try:
+            with zipfile.ZipFile(raw_output) as z:
+                return set(self.KEEP) <= set(z.namelist())
+        except zipfile.BadZipFile:
             return False
-        return True
 
     def extract(self, raw_output: Path, **kwargs) -> Dict[str, object]:
         properties = dict()
