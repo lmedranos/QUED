@@ -95,7 +95,21 @@ geometric = "*"
 [feature.gpu.pypi-dependencies]
 gpu4pyscf-cuda13x = "*"
 
+# ---------------------------------------------------------------- dftb
+# DFTB+ 24.1 cannot share an environment with xtb 6.7.1, so it gets its own
+# minimal environment (no default packages). Used by scripts/dftb_modal.py.
+[feature.dftb]
+platforms = ["mac", "linux-cpu"]
+
+[feature.dftb.dependencies]
+python = "3.11.*"
+numpy = "*"
+h5py = "*"
+ase = "*"
+dftbplus = { version = "24.1.*", build = "nompi_*" }   # OpenMP only, no mpiexec
+
 # ---------------------------------------------------------------- environments
 [environments]
 default = { features = ["cpu"] }
 gpu = { features = ["gpu"] }
+dftb = { features = ["dftb"], no-default-feature = true }

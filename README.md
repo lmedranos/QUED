@@ -113,21 +113,26 @@ edits to `qued/` take effect immediately; no `pip install -e .` is needed. A
 notebook kernel started directly from the interpreter path may skip activation;
 in that case add `sys.path.insert(0, "/path/to/QUED")` at the top of the notebook.
 
-### 5. Tools not managed by pixi
-- [`dftb+`](https://dftbplus-recipes.readthedocs.io/en/latest/introduction.html)
-  (version 24.1) is needed to compute DFTB properties. It **cannot share an
-  environment with xtb 6.7.1** (used by crest), so DFTB+ and the scripts that call
-  it are kept as separate files and run in their own environment, e.g.:
-  ```bash
-  conda create -n qued-dftb -c conda-forge python=3.11 'dftbplus=24.1=mpi_openmpi_*' dftbplus-tools dftbplus-python ase
-  conda activate qued-dftb
-  ```
-  In that environment, replace the `dftb.py` file of the `ase` package with the one
-  provided in this repository (it includes reference values for Hubbard derivatives):
-  ```bash
-  cp dftb.py "$(python -c 'import ase.calculators.dftb as m; print(m.__file__)')"
-  ```
-  The DFTB+ outputs are then read by the `qued` modules in the pixi environment.
+### 5. DFTB properties (separate `dftb` environment)
+[DFTB+](https://dftbplus.org) 24.1 **cannot share an environment with xtb 6.7.1**
+(used by crest), so `pixi.toml` defines a third, minimal environment `dftb`
+(DFTB+ 24.1, ase, h5py, numpy; no default packages) and the standalone script
+`scripts/dftb_modal.py` (DFTB3-3ob + H-damping + MBD, as in the published workflow).
+
+It reads the geometries from the same HDF5 file as the other modals, skips
+conformers whose `<output_dir>/dftb/<molid>-<confid>.out` already exists and is
+converged, and stores the properties under `<molid>/<confid>/dftb/`:
+```bash
+pixi install -e dftb
+pixi run -e dftb python scripts/dftb_modal.py -hdf5 out/optimized.h5 -o out \
+    -i db.csv --skf_dir /path/to/3ob-3-1
+```
+The 3ob-3-1 Slater–Koster files are not included; download them from
+[dftb.org](https://dftb.org/parameters/download) and pass their folder with
+`--skf_dir` (or set `DFTB_PREFIX`). The script passes the 3ob Hubbard derivatives
+itself, so the ase `dftb.py` file no longer needs to be replaced.
+
+### Tools not managed by pixi
 - [`KRR-OPT`](https://github.com/arkochem/krr-opt.git) for training KRR models.
 
 ### 6. Notes and troubleshooting
