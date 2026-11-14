@@ -211,24 +211,25 @@ class DFTBModalCalculator:
                 chg.append(float(tok[1]))
             elif chg:
                 break
-        p['TBchg'] = np.array(chg)
+        p['partial_charges'] = np.array(chg)
 
         def first(pattern, cast=float):
             m = re.search(pattern, detailed, flags=re.M)
             return cast(m.group(1)) if m else None
 
         num = r"(-?\d+\.\d+(?:[EeDd][+-]?\d+)?)"
-        p['FermiEne'] = first(rf"^Fermi level:\s+{num}\s+H")
-        p['BandEne'] = first(rf"^Band energy:\s+{num}\s+H")
-        p['NumElec'] = first(rf"^Input / Output electrons \(q\):\s+\S+\s+{num}")
-        p['h0Ene'] = first(rf"^Energy H0:\s+{num}\s+H")
-        p['sccEne'] = first(rf"^Energy SCC:\s+{num}\s+H")
-        p['3rdEne'] = first(rf"^Energy 3rd:\s+{num}\s+H")
-        p['repEne'] = first(rf"^Repulsive energy:\s+{num}\s+H")
-        p['mbdEne'] = first(rf"^Dispersion energy:\s+{num}\s+H")
-        p['TotEne'] = first(rf"^Total energy:\s+{num}\s+H")
+        p['Fermi_energy_H'] = first(rf"^Fermi level:\s+{num}\s+H")
+        p['band_energy_H'] = first(rf"^Band energy:\s+{num}\s+H")
+        p['number_electrons'] = first(rf"^Input / Output electrons \(q\):\s+\S+\s+{num}")
+        p['h0_energy_H'] = first(rf"^Energy H0:\s+{num}\s+H")
+        p['scc_energy_H'] = first(rf"^Energy SCC:\s+{num}\s+H")
+        p['3rd_corr_energy_H'] = first(rf"^Energy 3rd:\s+{num}\s+H")
+        p['repulsive_energy_H'] = first(rf"^Repulsive energy:\s+{num}\s+H")
+        p['dispersion_energy_H'] = first(rf"^Dispersion energy:\s+{num}\s+H")
+        p['total_energy_H'] = first(rf"^Total energy:\s+{num}\s+H")
         m = re.search(rf"^Dipole moment:\s+{num}\s+{num}\s+{num}\s+au", detailed, flags=re.M)
-        p['TBdip'] = np.array([float(x) for x in m.groups()]) * AU2DEBYE if m else None
+        p['dipole_vector_debye'] = np.array([float(x) for x in m.groups()]) * AU2DEBYE if m else None
+
 
         # Orbital energies (eV) and occupations from band.out (first KPT/spin block)
         eo = []
@@ -248,7 +249,8 @@ class DFTBModalCalculator:
         homos[n_homos - len(occ_part):] = occ_part
         virt_part = e[lumo:lumo + n_lumos]
         lumos[:len(virt_part)] = virt_part
-        p['TBeig'] = np.concatenate((homos, lumos))
+        p['homos_eV'] = homos
+        p['lumos_eV'] = lumos
         return p
 
     def save_in_hdf5(self, properties, molid, confid, hf_path):
